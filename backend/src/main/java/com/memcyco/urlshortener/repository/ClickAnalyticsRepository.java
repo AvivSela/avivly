@@ -1,0 +1,22 @@
+package com.memcyco.urlshortener.repository;
+
+import com.memcyco.urlshortener.model.ClickAnalytics;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+
+public interface ClickAnalyticsRepository extends JpaRepository<ClickAnalytics, Long> {
+
+    List<ClickAnalytics> findByShortCodeOrderByClickedAtDesc(String shortCode);
+
+    @Query("SELECT DATE(c.clickedAt) as date, COUNT(c) as count FROM ClickAnalytics c WHERE c.shortCode = :shortCode GROUP BY DATE(c.clickedAt) ORDER BY DATE(c.clickedAt)")
+    List<Object[]> countClicksByDay(@Param("shortCode") String shortCode);
+
+    @Query("SELECT c.referer, COUNT(c) as count FROM ClickAnalytics c WHERE c.shortCode = :shortCode AND c.referer IS NOT NULL GROUP BY c.referer ORDER BY count DESC")
+    List<Object[]> topReferrers(@Param("shortCode") String shortCode);
+
+    @Query("SELECT c.userAgent, COUNT(c) as count FROM ClickAnalytics c WHERE c.shortCode = :shortCode AND c.userAgent IS NOT NULL GROUP BY c.userAgent ORDER BY count DESC")
+    List<Object[]> topUserAgents(@Param("shortCode") String shortCode);
+}

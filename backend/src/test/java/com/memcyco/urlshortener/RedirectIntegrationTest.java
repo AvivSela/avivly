@@ -1,0 +1,81 @@
+package com.memcyco.urlshortener;
+
+import com.memcyco.urlshortener.dto.CreateLinkRequest;
+import com.memcyco.urlshortener.model.ShortLink;
+import com.memcyco.urlshortener.service.LinkService;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.time.LocalDateTime;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
+class RedirectIntegrationTest {
+
+    @LocalServerPort
+    private int port;
+
+    @Autowired
+    private TestRestTemplate restTemplate;
+
+    @Autowired
+    private LinkService linkService;
+
+    private String url(String path) {
+        return "http://localhost:" + port + path;
+    }
+
+    @Test
+    void happyPath_redirectsToOriginalUrl() {
+        ShortLink link = linkService.create(new CreateLinkRequest(
+            "https://example.com/happy", null, null, null, null, null));
+
+        ResponseEntity<Void> response = restTemplate.getForEntity(
+            url("/" + link.getShortCode()), Void.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        assertThat(response.getHeaders().getLocation())
+            .hasToString("https://example.com/happy");
+    }
+
+    @Test
+    void expiredLink_returns410() {
+        ShortLink link = linkService.create(new CreateLinkRequest(
+            "https://example.com/expired", null, null, null,
+            LocalDateTime.now().minusSeconds(1), null));
+
+        ResponseEntity<Void> response = restTemplate.getForEntity(
+            url("/" + link.getShortCode()), Void.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.GONE);
+    }
+
+    @Test
+    void clickExhausted_secondRequestReturns410() {
+        ShortLink link = linkService.create(new CreateLinkRequest(
+            "https://example.com/limited", null, null, 1, null, null));
+
+        restTemplate.getForEntity(url("/" + link.getShortCode()), Void.class);
+
+        ResponseEntity<Void> second = restTemplate.getForEntity(
+            url("/" + link.getShortCode()), Void.class);
+
+        assertThat(second.getStatusCode()).isEqualTo(HttpStatus.GONE);
+    }
+
+    @Test
+    void unknownCode_returns410() {
+        ResponseEntity<Void> response = restTemplate.getForEntity(
+            url("/nonexistent999"), Void.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.GONE);
+    }
+}
