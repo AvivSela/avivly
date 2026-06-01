@@ -107,8 +107,8 @@ public class LinkService {
     @CacheEvict(value = "shortLinks", key = "#shortCode")
     public void evictCache(String shortCode) {}
 
-    @Async
     @Transactional
+    @CacheEvict(value = "shortLinks", key = "#shortCode")
     public void recordClick(String shortCode) {
         repo.incrementClicks(shortCode);
     }
