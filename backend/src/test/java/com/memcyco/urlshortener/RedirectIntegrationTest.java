@@ -1,8 +1,13 @@
 package com.memcyco.urlshortener;
 
 import com.memcyco.urlshortener.dto.CreateLinkRequest;
+import com.memcyco.urlshortener.dto.UpdateLinkRequest;
+import com.memcyco.urlshortener.model.ClickAnalytics;
 import com.memcyco.urlshortener.model.ShortLink;
+import com.memcyco.urlshortener.repository.ClickAnalyticsRepository;
+import com.memcyco.urlshortener.repository.ShortLinkRepository;
 import com.memcyco.urlshortener.service.LinkService;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -28,6 +35,12 @@ class RedirectIntegrationTest {
 
     @Autowired
     private LinkService linkService;
+
+    @Autowired
+    private ClickAnalyticsRepository clickAnalyticsRepo;
+
+    @Autowired
+    private ShortLinkRepository shortLinkRepo;
 
     private String url(String path) {
         return "http://localhost:" + port + path;
@@ -75,6 +88,81 @@ class RedirectIntegrationTest {
     void unknownCode_returns410() {
         ResponseEntity<Void> response = restTemplate.getForEntity(
             url("/nonexistent999"), Void.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.GONE);
+    }
+
+    @Test
+    void sequential_shortCodeIsBase62EncodingOfId() {
+        ShortLink link = linkService.create(new CreateLinkRequest(
+            "https://example.com/seq1", null, "SEQUENTIAL", null, null, null));
+
+        assertThat(link.getShortCode()).isNotNull();
+        assertThat(link.getShortCode()).matches("^[a-zA-Z0-9]+$");
+        assertThat(link.getShortCode().length()).isLessThanOrEqualTo(7);
+        assertThat(link.getId()).isNotNull();
+    }
+
+    @Test
+    void sequential_twoLinksGetDifferentCodes() {
+        ShortLink first = linkService.create(new CreateLinkRequest(
+            "https://example.com/seq2a", null, "SEQUENTIAL", null, null, null));
+        ShortLink second = linkService.create(new CreateLinkRequest(
+            "https://example.com/seq2b", null, "SEQUENTIAL", null, null, null));
+
+        assertThat(first.getShortCode()).isNotEqualTo(second.getShortCode());
+    }
+
+    @Test
+    void sequential_redirectWorks() {
+        ShortLink link = linkService.create(new CreateLinkRequest(
+            "https://example.com/seq3", null, "SEQUENTIAL", null, null, null));
+
+        ResponseEntity<Void> response = restTemplate.getForEntity(
+            url("/" + link.getShortCode()), Void.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        assertThat(response.getHeaders().getLocation())
+            .hasToString("https://example.com/seq3");
+    }
+
+    @Test
+    void redirect_persistsClickAnalyticsRow() {
+        ShortLink link = linkService.create(new CreateLinkRequest(
+            "https://example.com/track1", null, null, null, null, null));
+
+        restTemplate.getForEntity(url("/" + link.getShortCode()), Void.class);
+
+        Awaitility.await().atMost(5, TimeUnit.SECONDS)
+            .until(() -> !clickAnalyticsRepo
+                .findByShortCodeOrderByClickedAtDesc(link.getShortCode()).isEmpty());
+
+        List<ClickAnalytics> rows =
+            clickAnalyticsRepo.findByShortCodeOrderByClickedAtDesc(link.getShortCode());
+        assertThat(rows).hasSize(1);
+        assertThat(rows.get(0).getShortCode()).isEqualTo(link.getShortCode());
+    }
+
+    @Test
+    void redirect_incrementsTotalClicks() {
+        ShortLink link = linkService.create(new CreateLinkRequest(
+            "https://example.com/track2", null, null, null, null, null));
+
+        restTemplate.getForEntity(url("/" + link.getShortCode()), Void.class);
+
+        ShortLink updated = shortLinkRepo.findByShortCode(link.getShortCode()).orElseThrow();
+        assertThat(updated.getTotalClicks()).isEqualTo(1);
+    }
+
+    @Test
+    void inactiveLink_returns410() {
+        ShortLink link = linkService.create(new CreateLinkRequest(
+            "https://example.com/inactive", null, null, null, null, null));
+        linkService.update(link.getId(),
+            new UpdateLinkRequest(null, false, null, null, null));
+
+        ResponseEntity<Void> response = restTemplate.getForEntity(
+            url("/" + link.getShortCode()), Void.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.GONE);
     }

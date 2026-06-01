@@ -11,7 +11,7 @@ public interface ClickAnalyticsRepository extends JpaRepository<ClickAnalytics, 
 
     List<ClickAnalytics> findByShortCodeOrderByClickedAtDesc(String shortCode);
 
-    @Query("SELECT DATE(c.clickedAt) as date, COUNT(c) as count FROM ClickAnalytics c WHERE c.shortCode = :shortCode GROUP BY DATE(c.clickedAt) ORDER BY DATE(c.clickedAt)")
+    @Query("SELECT CAST(c.clickedAt AS date) as date, COUNT(c) as count FROM ClickAnalytics c WHERE c.shortCode = :shortCode GROUP BY CAST(c.clickedAt AS date) ORDER BY CAST(c.clickedAt AS date)")
     List<Object[]> countClicksByDay(@Param("shortCode") String shortCode);
 
     @Query("SELECT c.referer, COUNT(c) as count FROM ClickAnalytics c WHERE c.shortCode = :shortCode AND c.referer IS NOT NULL GROUP BY c.referer ORDER BY count DESC")

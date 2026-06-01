@@ -1,7 +1,6 @@
 package com.memcyco.urlshortener.util.strategy;
 
 import com.memcyco.urlshortener.model.ShortLink;
-import com.memcyco.urlshortener.util.Base62;
 
 public class SequentialStrategy implements CodeGenerationStrategy {
 
@@ -12,7 +11,7 @@ public class SequentialStrategy implements CodeGenerationStrategy {
     public String generate(String originalUrl, ShortLink partialEntity) {
         Long id = partialEntity.getId();
         if (id == null) {
-            return Base62.generate(7);
+            throw new IllegalStateException("SequentialStrategy requires a persisted entity");
         }
         return encodeId(id);
     }

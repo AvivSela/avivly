@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.memcyco.urlshortener.RedirectIntegrationTest" time="41.466" tests="10" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.memcyco.urlshortener.util.strategy.SequentialStrategyTest" time="0.466" tests="5" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="21"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -7,9 +7,6 @@
     <property name="java.vm.vendor" value="Ubuntu"/>
     <property name="sun.arch.data.model" value="64"/>
     <property name="java.vendor.url" value="https://ubuntu.com/"/>
-    <property name="catalina.useNaming" value="false"/>
-    <property name="user.timezone" value="Etc/UTC"/>
-    <property name="org.jboss.logging.provider" value="slf4j"/>
     <property name="os.name" value="Linux"/>
     <property name="java.vm.specification.version" value="21"/>
     <property name="sun.java.launcher" value="SUN_STANDARD"/>
@@ -30,8 +27,6 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
-    <property name="FILE_LOG_CHARSET" value="UTF-8"/>
-    <property name="java.awt.headless" value="true"/>
     <property name="surefire.real.class.path" value="/home/aviv/dev/memcyco/backend/target/surefire/surefirebooter-20260601091308307_3.jar"/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
     <property name="java.runtime.version" value="21.0.11+10-1-24.04.2-Ubuntu"/>
@@ -45,15 +40,10 @@
     <property name="localRepository" value="/home/aviv/.m2/repository"/>
     <property name="java.vendor.url.bug" value="https://bugs.launchpad.net/ubuntu/+source/openjdk-21"/>
     <property name="java.io.tmpdir" value="/tmp"/>
-    <property name="catalina.home" value="/tmp/tomcat.0.14611855382880856310"/>
-    <property name="com.zaxxer.hikari.pool_number" value="1"/>
     <property name="java.version" value="21.0.11"/>
     <property name="user.dir" value="/home/aviv/dev/memcyco/backend"/>
     <property name="os.arch" value="amd64"/>
     <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
-    <property name="PID" value="171060"/>
-    <property name="CONSOLE_LOG_CHARSET" value="UTF-8"/>
-    <property name="catalina.base" value="/tmp/tomcat.0.14611855382880856310"/>
     <property name="native.encoding" value="UTF-8"/>
     <property name="java.library.path" value="/usr/java/packages/lib:/usr/lib/x86_64-linux-gnu/jni:/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/lib/jni:/lib:/usr/lib"/>
     <property name="java.vm.info" value="mixed mode, sharing"/>
@@ -63,38 +53,9 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="65.0"/>
   </properties>
-  <testcase name="sequential_shortCodeIsBase62EncodingOfId" classname="com.memcyco.urlshortener.RedirectIntegrationTest" time="2.715">
-    <system-out><![CDATA[09:13:17.938 [main] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.memcyco.urlshortener.RedirectIntegrationTest]: RedirectIntegrationTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-09:13:18.514 [main] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.memcyco.urlshortener.UrlShortenerApplication for test class com.memcyco.urlshortener.RedirectIntegrationTest
-
-  .   ____          _            __ _ _
- /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
-( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
- \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
-  '  |____| .__|_| |_|_| |_\__, | / / / /
- =========|_|==============|___/=/_/_/_/
- :: Spring Boot ::                (v3.2.0)
-
-2026-06-01T09:13:21.256Z  INFO 171060 --- [           main] c.m.u.RedirectIntegrationTest            : Starting RedirectIntegrationTest using Java 21.0.11 with PID 171060 (started by aviv in /home/aviv/dev/memcyco/backend)
-2026-06-01T09:13:21.263Z  INFO 171060 --- [           main] c.m.u.RedirectIntegrationTest            : The following 1 profile is active: "test"
-2026-06-01T09:13:36.342Z  WARN 171060 --- [           main] org.hibernate.dialect.Dialect            : HHH000511: The 2.2.0 version for [org.hibernate.dialect.PostgreSQLDialect] is no longer supported, hence certain features may not work properly. The minimum supported version is 11.0.0. Check the community dialects project for available legacy versions.
-2026-06-01T09:13:36.354Z  WARN 171060 --- [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
-2026-06-01T09:13:47.160Z  WARN 171060 --- [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
-2026-06-01T09:13:50.569Z  INFO 171060 --- [           main] c.m.u.RedirectIntegrationTest            : Started RedirectIntegrationTest in 31.315 seconds (process running for 42.072)
-]]></system-out>
-    <system-err><![CDATA[WARNING: A Java agent has been loaded dynamically (/home/aviv/.m2/repository/net/bytebuddy/byte-buddy-agent/1.14.10/byte-buddy-agent-1.14.10.jar)
-WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
-WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
-WARNING: Dynamic loading of agents will be disallowed by default in a future release
-]]></system-err>
-  </testcase>
-  <testcase name="sequential_redirectWorks" classname="com.memcyco.urlshortener.RedirectIntegrationTest" time="0.937"/>
-  <testcase name="sequential_twoLinksGetDifferentCodes" classname="com.memcyco.urlshortener.RedirectIntegrationTest" time="0.054"/>
-  <testcase name="expiredLink_returns410" classname="com.memcyco.urlshortener.RedirectIntegrationTest" time="0.114"/>
-  <testcase name="happyPath_redirectsToOriginalUrl" classname="com.memcyco.urlshortener.RedirectIntegrationTest" time="0.214"/>
-  <testcase name="clickExhausted_secondRequestReturns410" classname="com.memcyco.urlshortener.RedirectIntegrationTest" time="0.465"/>
-  <testcase name="redirect_incrementsTotalClicks" classname="com.memcyco.urlshortener.RedirectIntegrationTest" time="0.427"/>
-  <testcase name="unknownCode_returns410" classname="com.memcyco.urlshortener.RedirectIntegrationTest" time="0.13"/>
-  <testcase name="inactiveLink_returns410" classname="com.memcyco.urlshortener.RedirectIntegrationTest" time="0.549"/>
-  <testcase name="redirect_persistsClickAnalyticsRow" classname="com.memcyco.urlshortener.RedirectIntegrationTest" time="0.44"/>
+  <testcase name="encodeId_one_returnsSecondChar" classname="com.memcyco.urlshortener.util.strategy.SequentialStrategyTest" time="0.012"/>
+  <testcase name="encodeId_62_rollsOver" classname="com.memcyco.urlshortener.util.strategy.SequentialStrategyTest" time="0.01"/>
+  <testcase name="encodeId_zero_returnsFirstChar" classname="com.memcyco.urlshortener.util.strategy.SequentialStrategyTest" time="0.052"/>
+  <testcase name="encodeId_61_returnsLastChar" classname="com.memcyco.urlshortener.util.strategy.SequentialStrategyTest" time="0.011"/>
+  <testcase name="generate_nullId_throwsIllegalState" classname="com.memcyco.urlshortener.util.strategy.SequentialStrategyTest" time="0.121"/>
 </testsuite>

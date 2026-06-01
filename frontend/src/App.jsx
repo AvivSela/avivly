@@ -8,6 +8,7 @@ export default function App() {
   const [links, setLinks] = useState([]);
   const [editTarget, setEditTarget] = useState(null);
   const [analyticsShortCode, setAnalyticsShortCode] = useState(null);
+  const [tagFilter, setTagFilter] = useState(null);
   const [loadError, setLoadError] = useState('');
 
   const fetchLinks = useCallback(async () => {
@@ -54,6 +55,8 @@ export default function App() {
             onEdit={setEditTarget}
             onDelete={handleDelete}
             onViewStats={setAnalyticsShortCode}
+            tagFilter={tagFilter}
+            onTagFilter={setTagFilter}
           />
         </div>
 

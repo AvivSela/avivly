@@ -120,6 +120,61 @@ The dev server starts on `http://localhost:5173`. All `/api/*` requests are prox
 | GET | `/api/links/{shortCode}/analytics` | Get click analytics | 200 OK |
 | GET | `/{shortCode}` | Redirect to original URL | 302 Found / 410 Gone |
 
-## Architecture Notes
+## Assumptions
 
-Short links are cached in memory using Caffeine (`@Cacheable`) with a 10-minute TTL, so repeated redirects are served without hitting the database. Click analytics are recorded asynchronously via Spring's `@Async` with a dedicated thread pool, ensuring redirects are never delayed by database writes. Every redirect validates the link via `ShortLink.isValid()`, enforcing expiry dates, max-click limits, and the active flag before serving or rejecting the request.
+- **Single-user / trusted network only.** The API has no authentication or authorization. Anyone with network access can create, update, or delete any link. Do not expose it to the public internet without adding an auth layer.
+
+- **Single backend instance.** The Caffeine cache is in-process (per-JVM). Running multiple backend replicas would give each its own independent cache, causing `totalClicks` to diverge across nodes and max-click limits to be under-enforced. Horizontal scaling requires replacing Caffeine with a shared cache (e.g. Redis).
+
+- **Callers supply valid, absolute URLs.** `originalUrl` is only validated as non-blank. No scheme check, DNS resolution, or reachability check is performed.
+
+- **Analytics are best-effort (at-most-once).** `recordClick` (increments `totalClicks`) and `logClickAsync` (writes a `ClickAnalytics` row) are independent operations. A JVM crash between them can leave `totalClicks` one ahead of `COUNT(ClickAnalytics)`. Occasional one-row drift is considered acceptable.
+
+- **Real client IPs are not captured behind a reverse proxy.** `request.getRemoteAddr()` returns the proxy's IP (e.g. nginx in Docker), not the originating client IP. `X-Forwarded-For` is not read. IP analytics will be inaccurate in proxied deployments.
+
+- **Tags are free-text labels, not structured data.** The `tags` field is a single plain-text string stored as-is. There is no "find all links by tag" query; tags are for display purposes only.
+
+- **All timestamps are server-local with no timezone info.** `LocalDateTime` is used throughout. The assumption is that the server and any consumers share the same timezone, or that timezone differences are acceptable.
+
+## Design Decisions
+
+### Short code generation — pluggable strategy pattern
+
+Three strategies are available, selectable per link. Each is a self-contained class behind a `CodeGenerationStrategy` interface; adding a new one requires only a new class and an enum entry.
+
+| Strategy | How it works | Trade-off |
+|----------|-------------|-----------|
+| `RANDOM_BASE62` (default) | 7 cryptographically random Base62 characters via `SecureRandom` | Unpredictable; different codes for identical URLs |
+| `HASH_TRUNCATE` | SHA-256 of the URL, first 7 bytes mapped to Base62 | Deterministic — same URL always yields the same code; collision possible across different URLs |
+| `SEQUENTIAL` | Base62 encoding of the database-assigned row ID | Shortest possible codes that grow naturally; requires a two-phase save (see below) |
+
+Custom aliases bypass all three strategies and are checked for uniqueness before saving.
+
+### Two-phase save for sequential codes
+
+`SEQUENTIAL` encodes the database-assigned `id`, which isn't available until the row exists. `LinkService.create` calls `saveAndFlush` to obtain the ID, generates the code, then saves again. If the generated code conflicts, the partial row is deleted and a `409 Conflict` is returned.
+
+### Dual-track click counting
+
+Clicks are tracked two independent ways:
+
+- **`ShortLink.totalClicks`** — an integer on the entity, incremented with a targeted `UPDATE`. Used only for enforcing `maxClicks` limits.
+- **`ClickAnalytics` rows** — one row per redirect, storing timestamp, referer, user agent, and IP. Used for time-series charts, top-referrer queries, and user-agent breakdowns.
+
+Keeping these separate avoids aggregating the full `ClickAnalytics` table on every redirect just to check a limit.
+
+### Cache eviction on every click
+
+Short links are cached in Caffeine with a 10-minute TTL and a maximum of 10 000 entries. Because `totalClicks` lives on the cached entity, a stale entry would cause the max-click limit to be under-enforced. `recordClick` is annotated `@CacheEvict`, so the cache entry is invalidated after each redirect and the next lookup re-fetches a fresh count from the database.
+
+### Asynchronous analytics writes
+
+`AnalyticsService.logClickAsync` is annotated `@Async` and runs on a dedicated `analytics-*` thread pool (4 core threads, 10 max, 500-item queue). The redirect response is returned before the `ClickAnalytics` row is written, so a slow database write never adds latency to the redirect path.
+
+### Validity check in the entity
+
+`ShortLink.isValid()` centralizes the three validity conditions — active flag, expiry date, max-click limit — in the entity. The redirect controller calls this single method and returns `410 Gone` on failure. `410` is used instead of `404` to signal that the resource existed but is intentionally unavailable.
+
+### Schema management
+
+`ddl-auto: update` lets Hibernate manage the schema directly from entity definitions. No migration files are required at this scale, and the schema is fully reconstructible from the Java model classes.

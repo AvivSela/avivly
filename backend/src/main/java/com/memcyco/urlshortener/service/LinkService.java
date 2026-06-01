@@ -52,14 +52,30 @@ public class LinkService {
             .tags(req.tags())
             .build();
 
-        String code = (req.customAlias() != null && !req.customAlias().isBlank())
-            ? req.customAlias()
-            : strategyRegistry.generate(strategyType, req.originalUrl(), partialEntity);
+        if (req.customAlias() != null && !req.customAlias().isBlank()) {
+            String code = req.customAlias();
+            if (repo.findByShortCode(code).isPresent()) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Short code already taken: " + code);
+            }
+            partialEntity.setShortCode(code);
+            return repo.save(partialEntity);
+        }
 
+        if (strategyType == StrategyType.SEQUENTIAL) {
+            ShortLink saved = repo.saveAndFlush(partialEntity);
+            String code = strategyRegistry.generate(strategyType, req.originalUrl(), saved);
+            if (repo.findByShortCode(code).isPresent()) {
+                repo.delete(saved);
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Short code already taken: " + code);
+            }
+            saved.setShortCode(code);
+            return repo.save(saved);
+        }
+
+        String code = strategyRegistry.generate(strategyType, req.originalUrl(), partialEntity);
         if (repo.findByShortCode(code).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Short code already taken: " + code);
         }
-
         partialEntity.setShortCode(code);
         return repo.save(partialEntity);
     }

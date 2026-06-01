@@ -1,1 +1,7 @@
+/home/aviv/dev/memcyco/backend/src/test/java/com/memcyco/urlshortener/util/strategy/RandomBase62StrategyTest.java
+/home/aviv/dev/memcyco/backend/src/test/java/com/memcyco/urlshortener/util/strategy/HashTruncateStrategyTest.java
 /home/aviv/dev/memcyco/backend/src/test/java/com/memcyco/urlshortener/RedirectIntegrationTest.java
+/home/aviv/dev/memcyco/backend/src/test/java/com/memcyco/urlshortener/LinkControllerIntegrationTest.java
+/home/aviv/dev/memcyco/backend/src/test/java/com/memcyco/urlshortener/util/Base62Test.java
+/home/aviv/dev/memcyco/backend/src/test/java/com/memcyco/urlshortener/util/strategy/SequentialStrategyTest.java
+/home/aviv/dev/memcyco/backend/src/test/java/com/memcyco/urlshortener/model/ShortLinkTest.java
