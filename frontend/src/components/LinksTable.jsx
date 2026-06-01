@@ -71,7 +71,7 @@ export default function LinksTable({ links, onEdit, onDelete, onViewStats, tagFi
                     />
                   ))}
                 </td>
-                <td className="py-2 text-gray-500">{link.clickCount ?? 0}</td>
+                <td className="py-2 text-gray-500">{link.totalClicks ?? 0}</td>
                 <td className="py-2">
                   <div className="flex gap-2 justify-end">
                     <button

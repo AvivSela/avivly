@@ -1,8 +1,0 @@
-com/memcyco/urlshortener/util/strategy/HashTruncateStrategyTest.class
-com/memcyco/urlshortener/util/strategy/SequentialStrategyTest.class
-com/memcyco/urlshortener/util/Base62Test.class
-com/memcyco/urlshortener/LinkControllerIntegrationTest.class
-com/memcyco/urlshortener/util/strategy/RandomBase62StrategyTest.class
-com/memcyco/urlshortener/RedirectIntegrationTest.class
-com/memcyco/urlshortener/model/ShortLinkTest.class
-com/memcyco/urlshortener/LinkControllerIntegrationTest$1.class
