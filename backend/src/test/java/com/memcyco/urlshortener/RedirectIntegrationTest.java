@@ -60,7 +60,7 @@ class RedirectIntegrationTest {
     }
 
     @Test
-    void expiredLink_returns410() {
+    void expiredLink_redirectsToLinkExpired() {
         ShortLink link = linkService.create(new CreateLinkRequest(
             "https://example.com/expired", null, null, null,
             LocalDateTime.now().minusSeconds(1), null));
@@ -68,11 +68,12 @@ class RedirectIntegrationTest {
         ResponseEntity<Void> response = restTemplate.getForEntity(
             url("/" + link.getShortCode()), Void.class);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.GONE);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        assertThat(response.getHeaders().getLocation()).hasToString("/link-expired");
     }
 
     @Test
-    void clickExhausted_secondRequestReturns410() {
+    void clickExhausted_secondRequestRedirectsToLinkExpired() {
         ShortLink link = linkService.create(new CreateLinkRequest(
             "https://example.com/limited", null, null, 1, null, null));
 
@@ -81,15 +82,34 @@ class RedirectIntegrationTest {
         ResponseEntity<Void> second = restTemplate.getForEntity(
             url("/" + link.getShortCode()), Void.class);
 
-        assertThat(second.getStatusCode()).isEqualTo(HttpStatus.GONE);
+        assertThat(second.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        assertThat(second.getHeaders().getLocation()).hasToString("/link-expired");
     }
 
     @Test
-    void unknownCode_returns410() {
+    void clickExhausted_exactLimitAllowedThenBlocked() {
+        ShortLink link = linkService.create(new CreateLinkRequest(
+            "https://example.com/limited3", null, null, 3, null, null));
+
+        for (int i = 0; i < 3; i++) {
+            ResponseEntity<Void> response = restTemplate.getForEntity(
+                url("/" + link.getShortCode()), Void.class);
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        }
+
+        ResponseEntity<Void> overLimit = restTemplate.getForEntity(
+            url("/" + link.getShortCode()), Void.class);
+        assertThat(overLimit.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        assertThat(overLimit.getHeaders().getLocation()).hasToString("/link-expired");
+    }
+
+    @Test
+    void unknownCode_redirectsToLinkExpired() {
         ResponseEntity<Void> response = restTemplate.getForEntity(
             url("/nonexistent999"), Void.class);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.GONE);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        assertThat(response.getHeaders().getLocation()).hasToString("/link-expired");
     }
 
     @Test
@@ -155,7 +175,7 @@ class RedirectIntegrationTest {
     }
 
     @Test
-    void inactiveLink_returns410() {
+    void inactiveLink_redirectsToLinkExpired() {
         ShortLink link = linkService.create(new CreateLinkRequest(
             "https://example.com/inactive", null, null, null, null, null));
         linkService.update(link.getId(),
@@ -164,6 +184,7 @@ class RedirectIntegrationTest {
         ResponseEntity<Void> response = restTemplate.getForEntity(
             url("/" + link.getShortCode()), Void.class);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.GONE);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        assertThat(response.getHeaders().getLocation()).hasToString("/link-expired");
     }
 }

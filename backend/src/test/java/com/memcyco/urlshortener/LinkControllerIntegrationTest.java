@@ -91,7 +91,7 @@ class LinkControllerIntegrationTest {
     }
 
     @Test
-    void deleteLink_returns204_andSubsequentRedirectReturns410() {
+    void deleteLink_returns204_andSubsequentRedirectsToLinkExpired() {
         CreateLinkRequest create = new CreateLinkRequest(
             "https://example.com/ctrl-delete", null, null, null, null, null);
         ShortLink created = restTemplate.postForEntity(url("/api/links"), create, ShortLink.class).getBody();
@@ -102,7 +102,8 @@ class LinkControllerIntegrationTest {
 
         ResponseEntity<Void> redirectResponse = restTemplate.getForEntity(
             url("/" + created.getShortCode()), Void.class);
-        assertThat(redirectResponse.getStatusCode()).isEqualTo(HttpStatus.GONE);
+        assertThat(redirectResponse.getStatusCode()).isEqualTo(HttpStatus.FOUND);
+        assertThat(redirectResponse.getHeaders().getLocation()).hasToString("/link-expired");
     }
 
     @Test
