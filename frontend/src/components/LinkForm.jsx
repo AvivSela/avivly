@@ -27,7 +27,7 @@ export default function LinkForm({ onCreated, editTarget, onUpdated, onCancel })
         await updateLink(editTarget.id, { originalUrl, shortCode: customCode });
         onUpdated();
       } else {
-        await createLink({ originalUrl, shortCode: customCode || undefined });
+        await createLink({ originalUrl, customAlias: customCode || undefined });
         setOriginalUrl('');
         setCustomCode('');
         onCreated();

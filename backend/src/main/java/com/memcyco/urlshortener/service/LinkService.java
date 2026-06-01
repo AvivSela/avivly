@@ -4,7 +4,8 @@ import com.memcyco.urlshortener.dto.CreateLinkRequest;
 import com.memcyco.urlshortener.dto.UpdateLinkRequest;
 import com.memcyco.urlshortener.model.ShortLink;
 import com.memcyco.urlshortener.repository.ShortLinkRepository;
-import com.memcyco.urlshortener.util.Base62;
+import com.memcyco.urlshortener.util.strategy.StrategyRegistry;
+import com.memcyco.urlshortener.util.strategy.StrategyType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -20,6 +21,7 @@ import java.util.List;
 public class LinkService {
 
     private final ShortLinkRepository repo;
+    private final StrategyRegistry strategyRegistry;
 
     @Cacheable(value = "shortLinks", key = "#shortCode")
     public ShortLink findByShortCode(String shortCode) {
@@ -32,24 +34,34 @@ public class LinkService {
 
     @Transactional
     public ShortLink create(CreateLinkRequest req) {
-        String code = (req.customAlias() != null && !req.customAlias().isBlank())
-            ? req.customAlias()
-            : Base62.generate(7);
-
-        if (repo.findByShortCode(code).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Short code already taken: " + code);
+        String strategyName = req.strategy();
+        StrategyType strategyType;
+        try {
+            strategyType = (strategyName != null && !strategyName.isBlank())
+                ? StrategyType.valueOf(strategyName)
+                : StrategyType.RANDOM_BASE62;
+        } catch (IllegalArgumentException e) {
+            strategyType = StrategyType.RANDOM_BASE62;
         }
 
-        ShortLink link = ShortLink.builder()
-            .shortCode(code)
+        ShortLink partialEntity = ShortLink.builder()
             .originalUrl(req.originalUrl())
-            .strategy(req.strategy() != null ? req.strategy() : "RANDOM_BASE62")
+            .strategy(strategyType.name())
             .maxClicks(req.maxClicks())
             .expiresAt(req.expiresAt())
             .tags(req.tags())
             .build();
 
-        return repo.save(link);
+        String code = (req.customAlias() != null && !req.customAlias().isBlank())
+            ? req.customAlias()
+            : strategyRegistry.generate(strategyType, req.originalUrl(), partialEntity);
+
+        if (repo.findByShortCode(code).isPresent()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Short code already taken: " + code);
+        }
+
+        partialEntity.setShortCode(code);
+        return repo.save(partialEntity);
     }
 
     @Transactional

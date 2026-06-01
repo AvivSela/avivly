@@ -18,7 +18,7 @@ public class RedirectController {
     private final LinkService linkService;
     private final AnalyticsService analyticsService;
 
-    @GetMapping("/{shortCode}")
+    @GetMapping({"/api/r/{shortCode}", "/{shortCode}"})
     public ResponseEntity<Void> redirect(@PathVariable String shortCode,
                                           HttpServletRequest request) {
         ShortLink link = linkService.findByShortCode(shortCode);
