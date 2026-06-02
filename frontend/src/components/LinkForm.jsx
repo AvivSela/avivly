@@ -1,14 +1,36 @@
 import { useState, useEffect } from 'react';
-import { createLink, updateLink } from '../api';
+import { createLink, updateLink, getStrategies } from '../api';
 
 export default function LinkForm({ onCreated, editTarget, onUpdated, onCancel }) {
-  const [originalUrl, setOriginalUrl] = useState('');
-  const [customCode, setCustomCode] = useState('');
-  const [tags, setTags] = useState('');
-  const [maxClicks, setMaxClicks] = useState('');
-  const [expiresAt, setExpiresAt] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [originalUrl, setOriginalUrl]       = useState('');
+  const [customCode, setCustomCode]         = useState('');
+  const [tags, setTags]                     = useState('');
+  const [maxClicks, setMaxClicks]           = useState('');
+  const [expiresAt, setExpiresAt]           = useState('');
+  const [error, setError]                   = useState('');
+  const [loading, setLoading]               = useState(false);
+
+  const [strategy, setStrategy]             = useState('RANDOM_BASE62');
+  const [strategySchemas, setStrategySchemas] = useState({});
+  const [allStrategyParams, setAllStrategyParams] = useState({});
+  const [schemaLoading, setSchemaLoading]   = useState(true);
+  const [schemaError, setSchemaError]       = useState('');
+
+  const strategyParams = allStrategyParams[strategy] ?? {};
+  const setStrategyParam = (name, value) =>
+    setAllStrategyParams(prev => ({
+      ...prev,
+      [strategy]: { ...(prev[strategy] ?? {}), [name]: value }
+    }));
+
+  useEffect(() => {
+    setSchemaLoading(true);
+    setSchemaError('');
+    getStrategies()
+      .then(res => setStrategySchemas(res.data))
+      .catch(() => setSchemaError('Could not load strategy options. Please refresh.'))
+      .finally(() => setSchemaLoading(false));
+  }, []);
 
   useEffect(() => {
     if (editTarget) {
@@ -17,12 +39,20 @@ export default function LinkForm({ onCreated, editTarget, onUpdated, onCancel })
       setTags(editTarget.tags ?? '');
       setMaxClicks(editTarget.maxClicks ?? '');
       setExpiresAt(editTarget.expiresAt ? editTarget.expiresAt.slice(0, 16) : '');
+      setStrategy(editTarget.strategy ?? 'RANDOM_BASE62');
+      setAllStrategyParams(
+        editTarget.strategyParams
+          ? { [editTarget.strategy]: editTarget.strategyParams }
+          : {}
+      );
     } else {
       setOriginalUrl('');
       setCustomCode('');
       setTags('');
       setMaxClicks('');
       setExpiresAt('');
+      setStrategy('RANDOM_BASE62');
+      setAllStrategyParams({});
     }
     setError('');
   }, [editTarget]);
@@ -32,11 +62,16 @@ export default function LinkForm({ onCreated, editTarget, onUpdated, onCancel })
     setError('');
     setLoading(true);
     try {
+      const cleanParams = Object.fromEntries(
+        Object.entries(strategyParams).filter(([, v]) => v !== undefined)
+      );
       const payload = {
         originalUrl,
         tags: tags.trim() || undefined,
         maxClicks: maxClicks !== '' ? Number(maxClicks) : undefined,
         expiresAt: expiresAt ? new Date(expiresAt).toISOString().slice(0, 19) : undefined,
+        strategy,
+        strategyParams: Object.keys(cleanParams).length > 0 ? cleanParams : undefined,
       };
       if (editTarget) {
         await updateLink(editTarget.id, { ...payload, shortCode: customCode });
@@ -48,6 +83,8 @@ export default function LinkForm({ onCreated, editTarget, onUpdated, onCancel })
         setTags('');
         setMaxClicks('');
         setExpiresAt('');
+        setStrategy('RANDOM_BASE62');
+        setAllStrategyParams({});
         onCreated();
       }
     } catch (err) {
@@ -76,6 +113,83 @@ export default function LinkForm({ onCreated, editTarget, onUpdated, onCancel })
           onChange={(e) => setCustomCode(e.target.value)}
           className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
+
+        {schemaError && <p className="text-red-500 text-sm">{schemaError}</p>}
+
+        <select
+          value={strategy}
+          onChange={(e) => setStrategy(e.target.value)}
+          disabled={schemaLoading || !!editTarget}
+          className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+        >
+          {schemaLoading
+            ? <option>Loading strategies…</option>
+            : Object.keys(strategySchemas).map(name => (
+                <option key={name} value={name}>{name}</option>
+              ))
+          }
+        </select>
+
+        {editTarget && (
+          <p className="text-xs text-gray-400">Strategy is fixed at creation and cannot be changed.</p>
+        )}
+
+        {(strategySchemas[strategy] ?? []).map(param => {
+          const inputId = `strategy-param-${param.name}`;
+          return (
+            <div key={param.name}>
+              <label htmlFor={inputId} className="text-xs text-gray-500 block mb-1">
+                {param.description}
+                {param.required && <span className="text-red-500 ml-1" aria-hidden="true">*</span>}
+              </label>
+
+              {param.type === 'integer' && (
+                <input
+                  id={inputId}
+                  type="number"
+                  placeholder={`default: ${param.defaultValue ?? 'none'}`}
+                  value={strategyParams[param.name] ?? ''}
+                  aria-required={param.required}
+                  onChange={e => setStrategyParam(
+                    param.name,
+                    e.target.value === '' ? undefined : Number(e.target.value)
+                  )}
+                  className="border rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+              )}
+
+              {param.type === 'string' && (
+                <input
+                  id={inputId}
+                  type="text"
+                  placeholder={param.defaultValue !== '' ? `default: ${param.defaultValue}` : 'optional'}
+                  value={strategyParams[param.name] ?? ''}
+                  aria-required={param.required}
+                  onChange={e => setStrategyParam(
+                    param.name,
+                    e.target.value === '' ? undefined : e.target.value
+                  )}
+                  className="border rounded-lg px-3 py-2 text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+              )}
+
+              {param.type === 'boolean' && (
+                <input
+                  id={inputId}
+                  type="checkbox"
+                  checked={strategyParams[param.name] ?? false}
+                  aria-required={param.required}
+                  onChange={e => setStrategyParam(param.name, e.target.checked)}
+                />
+              )}
+
+              {!['integer', 'string', 'boolean'].includes(param.type) && (
+                <p className="text-xs text-yellow-600">Unsupported param type: {param.type}</p>
+              )}
+            </div>
+          );
+        })}
+
         <input
           type="text"
           placeholder="Tags (comma-separated, e.g. marketing,promo)"
@@ -100,11 +214,13 @@ export default function LinkForm({ onCreated, editTarget, onUpdated, onCancel })
             className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 w-1/2"
           />
         </div>
+
         {error && <p className="text-red-500 text-sm">{error}</p>}
+
         <div className="flex gap-2">
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || schemaLoading}
             className="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50"
           >
             {loading ? 'Saving...' : editTarget ? 'Update' : 'Shorten'}

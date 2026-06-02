@@ -64,7 +64,8 @@ public class LinkService {
 
         if (strategyType == StrategyType.SEQUENTIAL) {
             ShortLink saved = repo.saveAndFlush(partialEntity);
-            String code = strategyRegistry.generate(strategyType, req.originalUrl(), saved);
+            String code = strategyRegistry.validateAndGenerate(
+                    strategyType, req.originalUrl(), saved.getId(), req.strategyParams());
             if (repo.findByShortCode(code).isPresent()) {
                 repo.delete(saved);
                 throw new ResponseStatusException(HttpStatus.CONFLICT, "Short code already taken: " + code);
@@ -73,7 +74,8 @@ public class LinkService {
             return repo.save(saved);
         }
 
-        String code = strategyRegistry.generate(strategyType, req.originalUrl(), partialEntity);
+        String code = strategyRegistry.validateAndGenerate(
+                strategyType, req.originalUrl(), null, req.strategyParams());
         if (repo.findByShortCode(code).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Short code already taken: " + code);
         }

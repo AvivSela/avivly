@@ -1,7 +1,8 @@
 package com.memcyco.urlshortener.util.strategy;
 
-import com.memcyco.urlshortener.model.ShortLink;
 import org.junit.jupiter.api.Test;
+
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -11,8 +12,7 @@ class SequentialStrategyTest {
     private final SequentialStrategy strategy = new SequentialStrategy();
 
     private String encode(long id) {
-        ShortLink link = ShortLink.builder().id(id).originalUrl("https://example.com").build();
-        return strategy.generate("https://example.com", link);
+        return strategy.generate("https://example.com", id, Map.of());
     }
 
     @Test
@@ -39,8 +39,20 @@ class SequentialStrategyTest {
 
     @Test
     void generate_nullId_throwsIllegalState() {
-        ShortLink link = ShortLink.builder().originalUrl("https://example.com").build();
-        assertThatThrownBy(() -> strategy.generate("https://example.com", link))
+        assertThatThrownBy(() -> strategy.generate("https://example.com", null, Map.of()))
                 .isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void generate_withEmptyParams_usesDefaultPrefix() {
+        String result = strategy.generate("https://example.com", 1L, Map.of());
+        assertThat(result).doesNotContain("-");
+    }
+
+    @Test
+    void generate_withPrefix_prependsCorrectly() {
+        Map<String, Object> params = Map.of("prefix", "s-");
+        String result = strategy.generate("https://example.com", 1L, params);
+        assertThat(result).startsWith("s-");
     }
 }

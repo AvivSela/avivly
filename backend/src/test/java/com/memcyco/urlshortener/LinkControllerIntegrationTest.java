@@ -17,6 +17,7 @@ import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,7 +45,7 @@ class LinkControllerIntegrationTest {
     @Test
     void createLink_returns201WithBody() {
         CreateLinkRequest req = new CreateLinkRequest(
-            "https://example.com/ctrl-create", null, null, null, null, null);
+            "https://example.com/ctrl-create", null, null, null, null, null, null);
 
         ResponseEntity<ShortLink> response = restTemplate.postForEntity(
             url("/api/links"), req, ShortLink.class);
@@ -60,7 +61,7 @@ class LinkControllerIntegrationTest {
     @Test
     void getAll_includesCreatedLink() {
         CreateLinkRequest req = new CreateLinkRequest(
-            "https://example.com/ctrl-getall", null, null, null, null, null);
+            "https://example.com/ctrl-getall", null, null, null, null, null, null);
         restTemplate.postForEntity(url("/api/links"), req, ShortLink.class);
 
         ResponseEntity<List<ShortLink>> response = restTemplate.exchange(
@@ -76,7 +77,7 @@ class LinkControllerIntegrationTest {
     @Test
     void updateLink_persistsNewOriginalUrl() {
         CreateLinkRequest create = new CreateLinkRequest(
-            "https://example.com/ctrl-before", null, null, null, null, null);
+            "https://example.com/ctrl-before", null, null, null, null, null, null);
         ShortLink created = restTemplate.postForEntity(url("/api/links"), create, ShortLink.class).getBody();
 
         UpdateLinkRequest update = new UpdateLinkRequest(
@@ -93,7 +94,7 @@ class LinkControllerIntegrationTest {
     @Test
     void deleteLink_returns204_andSubsequentRedirectsToLinkExpired() {
         CreateLinkRequest create = new CreateLinkRequest(
-            "https://example.com/ctrl-delete", null, null, null, null, null);
+            "https://example.com/ctrl-delete", null, null, null, null, null, null);
         ShortLink created = restTemplate.postForEntity(url("/api/links"), create, ShortLink.class).getBody();
 
         ResponseEntity<Void> deleteResponse = restTemplate.exchange(
@@ -109,9 +110,9 @@ class LinkControllerIntegrationTest {
     @Test
     void customAliasConflict_secondCreateReturns409() {
         CreateLinkRequest first = new CreateLinkRequest(
-            "https://example.com/alias-a", "ctrl-conflict-alias", null, null, null, null);
+            "https://example.com/alias-a", "ctrl-conflict-alias", null, null, null, null, null);
         CreateLinkRequest second = new CreateLinkRequest(
-            "https://example.com/alias-b", "ctrl-conflict-alias", null, null, null, null);
+            "https://example.com/alias-b", "ctrl-conflict-alias", null, null, null, null, null);
 
         ResponseEntity<ShortLink> firstResponse = restTemplate.postForEntity(
             url("/api/links"), first, ShortLink.class);
@@ -125,7 +126,7 @@ class LinkControllerIntegrationTest {
     @Test
     void analytics_afterOneRedirect_returnsTotalClicksOneAndClicksOverTimeEntry() throws Exception {
         CreateLinkRequest create = new CreateLinkRequest(
-            "https://example.com/ctrl-analytics", null, null, null, null, null);
+            "https://example.com/ctrl-analytics", null, null, null, null, null, null);
         ShortLink created = restTemplate.postForEntity(url("/api/links"), create, ShortLink.class).getBody();
         String code = created.getShortCode();
 
@@ -142,5 +143,62 @@ class LinkControllerIntegrationTest {
 
         assertThat(analytics.totalClicks()).isEqualTo(1);
         assertThat(analytics.clicksOverTime()).isNotNull().isNotEmpty();
+    }
+
+    @Test
+    void createLink_withValidStrategyParams_returns201() {
+        CreateLinkRequest req = new CreateLinkRequest(
+            "https://example.com/params-valid", null, "RANDOM_BASE62",
+            Map.of("length", 10), null, null, null);
+        ResponseEntity<ShortLink> response = restTemplate.postForEntity(url("/api/links"), req, ShortLink.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody().getShortCode()).hasSize(10);
+    }
+
+    @Test
+    void createLink_withUnknownParamKey_returns400() {
+        CreateLinkRequest req = new CreateLinkRequest(
+            "https://example.com/params-unknown", null, "RANDOM_BASE62",
+            Map.of("bogusKey", 5), null, null, null);
+        ResponseEntity<String> response = restTemplate.postForEntity(url("/api/links"), req, String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void createLink_withOutOfRangeLength_returns400() {
+        CreateLinkRequest req = new CreateLinkRequest(
+            "https://example.com/params-range", null, "RANDOM_BASE62",
+            Map.of("length", 99), null, null, null);
+        ResponseEntity<String> response = restTemplate.postForEntity(url("/api/links"), req, String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void createLink_withInvalidAlgorithm_returns400() {
+        CreateLinkRequest req = new CreateLinkRequest(
+            "https://example.com/params-algo", null, "HASH_TRUNCATE",
+            Map.of("algorithm", "MD5"), null, null, null);
+        ResponseEntity<String> response = restTemplate.postForEntity(url("/api/links"), req, String.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void createLink_withNullStrategyParams_usesDefaults() {
+        CreateLinkRequest req = new CreateLinkRequest(
+            "https://example.com/params-null", null, "RANDOM_BASE62",
+            null, null, null, null);
+        ResponseEntity<ShortLink> response = restTemplate.postForEntity(url("/api/links"), req, ShortLink.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody().getShortCode()).hasSize(7);
+    }
+
+    @Test
+    void createLink_strategyParams_integerDeserializedCorrectly() {
+        CreateLinkRequest req = new CreateLinkRequest(
+            "https://example.com/params-jackson", null, "RANDOM_BASE62",
+            Map.of("length", 8), null, null, null);
+        ResponseEntity<ShortLink> response = restTemplate.postForEntity(url("/api/links"), req, ShortLink.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody().getShortCode()).hasSize(8);
     }
 }
