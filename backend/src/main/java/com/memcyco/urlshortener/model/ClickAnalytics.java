@@ -36,7 +36,7 @@ public class ClickAnalytics {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default
-    private GeoStatus geoStatus = GeoStatus.PENDING;
+    private GeoStatus geoStatus = GeoStatus.DISABLED;
 
     @Column(length = 100)
     private String country;

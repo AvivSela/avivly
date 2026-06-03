@@ -1,16 +1,20 @@
-# Geo Analytics Implementation Checklist
+# PR Review Fix Checklist — geo-feature branch
 
-- [x] [Phase 0 — Dependencies & Build Setup (0.1 + 0.2)](phase-0-setup.md)
-- [x] [Phase 1.1 — GeoStatus Enum](phase-1-1-geo-status-enum.md)
-- [x] [Phase 1.2 — ClickAnalytics Geo Fields](phase-1-2-click-analytics-geo-fields.md)
-- [x] [Phase 1.3 — Flyway Migrations](phase-1-3-flyway-migrations.md)
-- [x] [Phase 2.1 + 2.2 — GeoResult Record & GeoConfig Bean](phase-2-1-2-geo-core-setup.md)
-- [x] [Phase 2.3 + 2.4 — GeoResolverService & Health Indicator](phase-2-3-4-geo-resolver.md)
-- [x] [Phase 3.1 + 3.3 + 3.4 — Controller IP, Repo Queries, DTO Extension](phase-3-1-3-4-parallel.md)
-- [x] [Phase 3.2 — Analytics Geo Population](phase-3-2-analytics-geo-population.md)
-- [x] [Phase 3.5 — Analytics Service DTO](phase-3-5-analytics-service-dto.md)
-- [x] [Phase 4.1 — Frontend Geo Charts](phase-4-1-frontend-geo-charts.md)
-- [x] [Phase 5.1 — Dev Profile](phase-5-1-dev-profile.md)
-- [x] [Phase 5.2 — Flyway Schema Management](phase-5-2-flyway-schema-management.md)
-- [x] [Phase 5.3 — Integration Tests](phase-5-3-integration-tests.md)
-- [ ] [Phase 6 — CI, Docker & Attribution (6.1 + 6.2 + 6.3)](phase-6-ci-docker-attribution.md)
+Apply in this order to avoid compile errors mid-way. Each step must compile clean before the next begins.
+
+## Sequential (each depends on the previous)
+
+- [x] **Step 1** — `fix-10-georesult-constants.md` — Intern GeoResult failure singletons → `mvn compile`
+- [x] **Step 2** — `fix-08-data-incomplete-status.md` — Add DATA_INCOMPLETE geo status → `mvn compile`
+- [x] **Step 3** — `fix-07-remove-pending-v3-migration.md` — Remove PENDING + V3 migration → `mvn compile`
+- [x] **Step 4** — `fix-06-iputils-extract.md` — Extract IpUtils.isPrivateAddress → `mvn compile`
+- [x] **Step 5** — `fix-02-geoconfig-directory-guard.md` — Docker directory guard in GeoConfig → `mvn compile`
+- [x] **Step 6** — `fix-05-geo-isenabled-skip-queries.md` — Skip geo queries when disabled → `mvn compile`
+- [x] **Step 7** — `fix-04-analytics-str-count-helpers.md` — Extract str/count helpers in AnalyticsService → `mvn compile`
+- [x] **Step 8** — `fix-03-remove-transactional.md` — Remove @Transactional from logClickAsync → `mvn compile`
+- [x] **Step 9** — `fix-09-nginx-headers-dedup.md` — Move proxy_set_header to server block → `nginx -t`
+- [x] **Step 10** — `fix-01-global-exception-handler.md` — Add GlobalExceptionHandler → `mvn test`
+
+## Final gate
+
+- [x] `cd backend && ./mvnw test` — full suite green (79 tests, 0 failures)
