@@ -63,20 +63,22 @@ public class AnalyticsService {
             ))
             .toList();
 
-        List<AnalyticsResponse.CountryCount> topCountries = clickRepo.topCountries(shortCode, 10)
-            .stream()
-            .map(row -> new AnalyticsResponse.CountryCount(
-                row[0] != null ? row[0].toString() : "",
-                row[1] != null ? ((Number) row[1]).longValue() : 0L))
-            .toList();
+        List<AnalyticsResponse.CountryCount> topCountries = geoResolverService.isEnabled()
+            ? clickRepo.topCountries(shortCode, 10).stream()
+                .map(row -> new AnalyticsResponse.CountryCount(
+                    row[0] != null ? row[0].toString() : "",
+                    row[1] != null ? ((Number) row[1]).longValue() : 0L))
+                .toList()
+            : List.of();
 
-        List<AnalyticsResponse.CityCount> topCities = clickRepo.topCities(shortCode, 10)
-            .stream()
-            .map(row -> new AnalyticsResponse.CityCount(
-                row[0] != null ? row[0].toString() : "",
-                row[1] != null ? row[1].toString() : "",
-                row[2] != null ? ((Number) row[2]).longValue() : 0L))
-            .toList();
+        List<AnalyticsResponse.CityCount> topCities = geoResolverService.isEnabled()
+            ? clickRepo.topCities(shortCode, 10).stream()
+                .map(row -> new AnalyticsResponse.CityCount(
+                    row[0] != null ? row[0].toString() : "",
+                    row[1] != null ? row[1].toString() : "",
+                    row[2] != null ? ((Number) row[2]).longValue() : 0L))
+                .toList()
+            : List.of();
 
         return new AnalyticsResponse(totalClicks, clicksOverTime, topReferrers, topUserAgents,
                 topCountries, topCities);

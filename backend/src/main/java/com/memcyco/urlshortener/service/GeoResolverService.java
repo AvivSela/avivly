@@ -44,6 +44,10 @@ public class GeoResolverService {
         }
     }
 
+    public boolean isEnabled() {
+        return reader != null;
+    }
+
     /** Returns the IP with the last segment replaced by 'x' for safe logging. */
     public String mask(String ip) {
         if (ip == null) return "null";
