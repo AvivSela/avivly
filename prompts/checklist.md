@@ -1,7 +1,7 @@
 # Geo Analytics Implementation Checklist
 
-- [ ] [Phase 0 — Dependencies & Build Setup (0.1 + 0.2)](phase-0-setup.md)
-- [ ] [Phase 1.1 — GeoStatus Enum](phase-1-1-geo-status-enum.md)
+- [x] [Phase 0 — Dependencies & Build Setup (0.1 + 0.2)](phase-0-setup.md)
+- [x] [Phase 1.1 — GeoStatus Enum](phase-1-1-geo-status-enum.md)
 - [ ] [Phase 1.2 — ClickAnalytics Geo Fields](phase-1-2-click-analytics-geo-fields.md)
 - [ ] [Phase 1.3 — Flyway Migrations](phase-1-3-flyway-migrations.md)
 - [ ] [Phase 2.1 + 2.2 — GeoResult Record & GeoConfig Bean](phase-2-1-2-geo-core-setup.md)
