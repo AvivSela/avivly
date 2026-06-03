@@ -41,46 +41,40 @@ public class AnalyticsService {
 
         List<AnalyticsResponse.DailyCount> clicksOverTime = clickRepo.countClicksByDay(shortCode)
             .stream()
-            .map(row -> new AnalyticsResponse.DailyCount(
-                row[0] != null ? row[0].toString() : "",
-                row[1] != null ? ((Number) row[1]).longValue() : 0L
-            ))
+            .map(row -> new AnalyticsResponse.DailyCount(str(row, 0), count(row, 1)))
             .toList();
 
         List<AnalyticsResponse.ReferrerCount> topReferrers = clickRepo.topReferrers(shortCode, 10)
             .stream()
-            .map(row -> new AnalyticsResponse.ReferrerCount(
-                row[0] != null ? row[0].toString() : "",
-                row[1] != null ? ((Number) row[1]).longValue() : 0L
-            ))
+            .map(row -> new AnalyticsResponse.ReferrerCount(str(row, 0), count(row, 1)))
             .toList();
 
         List<AnalyticsResponse.AgentCount> topUserAgents = clickRepo.topUserAgents(shortCode, 10)
             .stream()
-            .map(row -> new AnalyticsResponse.AgentCount(
-                row[0] != null ? row[0].toString() : "",
-                row[1] != null ? ((Number) row[1]).longValue() : 0L
-            ))
+            .map(row -> new AnalyticsResponse.AgentCount(str(row, 0), count(row, 1)))
             .toList();
 
         List<AnalyticsResponse.CountryCount> topCountries = geoResolverService.isEnabled()
             ? clickRepo.topCountries(shortCode, 10).stream()
-                .map(row -> new AnalyticsResponse.CountryCount(
-                    row[0] != null ? row[0].toString() : "",
-                    row[1] != null ? ((Number) row[1]).longValue() : 0L))
+                .map(row -> new AnalyticsResponse.CountryCount(str(row, 0), count(row, 1)))
                 .toList()
             : List.of();
 
         List<AnalyticsResponse.CityCount> topCities = geoResolverService.isEnabled()
             ? clickRepo.topCities(shortCode, 10).stream()
-                .map(row -> new AnalyticsResponse.CityCount(
-                    row[0] != null ? row[0].toString() : "",
-                    row[1] != null ? row[1].toString() : "",
-                    row[2] != null ? ((Number) row[2]).longValue() : 0L))
+                .map(row -> new AnalyticsResponse.CityCount(str(row, 0), str(row, 1), count(row, 2)))
                 .toList()
             : List.of();
 
         return new AnalyticsResponse(totalClicks, clicksOverTime, topReferrers, topUserAgents,
                 topCountries, topCities);
+    }
+
+    private static String str(Object[] r, int i) {
+        return r[i] != null ? r[i].toString() : "";
+    }
+
+    private static long count(Object[] r, int i) {
+        return r[i] != null ? ((Number) r[i]).longValue() : 0L;
     }
 }
