@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.memcyco.urlshortener.util.IpUtils;
+import java.net.InetAddress;
 import java.net.URI;
 
 @RestController
@@ -32,10 +34,36 @@ public class RedirectController {
             shortCode,
             request.getHeader("Referer"),
             request.getHeader("User-Agent"),
-            request.getRemoteAddr()
+            extractClientIp(request)
         );
         return ResponseEntity.status(HttpStatus.FOUND)
             .location(URI.create(link.getOriginalUrl()))
             .build();
+    }
+
+    private String extractClientIp(HttpServletRequest request) {
+        String xRealIp = request.getHeader("X-Real-IP");
+        if (xRealIp != null && !xRealIp.isBlank()) {
+            return xRealIp.trim();
+        }
+        String xff = request.getHeader("X-Forwarded-For");
+        if (xff != null && !xff.isBlank()) {
+            String[] parts = xff.split(",");
+            for (int i = parts.length - 1; i >= 0; i--) {
+                String candidate = parts[i].trim();
+                // Strip bracketed IPv6 notation: [2001:db8::1] or [2001:db8::1]:port
+                if (candidate.startsWith("[")) {
+                    int close = candidate.indexOf(']');
+                    if (close > 1) candidate = candidate.substring(1, close);
+                }
+                try {
+                    InetAddress addr = InetAddress.getByName(candidate);
+                    if (!IpUtils.isPrivateAddress(addr)) {
+                        return candidate;
+                    }
+                } catch (Exception ignored) {}
+            }
+        }
+        return request.getRemoteAddr();
     }
 }

@@ -1,0 +1,3 @@
+geo:
+  db:
+    path: src/test/resources/GeoLite2-City-Test.mmdb

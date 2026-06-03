@@ -1,3 +1,44 @@
+# Phase 4.1 — Add Top Countries / Top Cities Charts to `AnalyticsPanel.jsx`
+
+## Context
+
+React frontend at `frontend/`. Charting library: `recharts` (already installed).
+File: `frontend/src/components/AnalyticsPanel.jsx`
+
+The component fetches analytics data via `getAnalytics(shortCode)` and renders a
+`BarChart` for daily clicks. It uses `recharts` components:
+`BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer` (already imported).
+
+The backend now returns `topCountries: [{country, clicks}]` and
+`topCities: [{city, country, clicks}]` (from Phase 3.4/3.5).
+The API response field for daily clicks is `clicksByDay` on the frontend
+(map `clicksOverTime` from the backend if needed — check `api.js` for the mapping).
+
+**Prerequisites:** Phase 3.5 complete — backend `GET /api/links/{shortCode}/analytics`
+returns `topCountries` and `topCities` arrays.
+
+## Objective
+
+Add two horizontal bar charts below the existing daily-clicks chart, plus an
+empty-state placeholder when both geo arrays are empty.
+
+## Design spec
+
+| Chart | Data field | Bar fill | Y-axis label |
+|-------|-----------|----------|--------------|
+| Top Countries | `data.topCountries` | `#3b82f6` | `country` |
+| Top Cities | `data.topCities` | `#10b981` | `"city, country"` (concatenated) |
+
+Empty state: when `topCountries` and `topCities` are both empty (or absent),
+show the text: **"Geographic data not yet available for this link."**
+
+## Implementation
+
+Edit `frontend/src/components/AnalyticsPanel.jsx`.
+
+Replace the file content with:
+
+```jsx
 import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { getAnalytics } from '../api';
@@ -37,15 +78,15 @@ export default function AnalyticsPanel({ shortCode, onClose }) {
             Total clicks: <span className="font-semibold text-gray-800">{data.totalClicks}</span>
           </p>
 
-          {data.clicksOverTime?.length > 0 && (
+          {data.clicksByDay?.length > 0 && (
             <>
               <h3 className="text-sm font-medium text-gray-600">Clicks over time</h3>
               <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={data.clicksOverTime}>
+                <BarChart data={data.clicksByDay}>
                   <XAxis dataKey="date" tick={{ fontSize: 11 }} />
                   <YAxis allowDecimals={false} tick={{ fontSize: 11 }} />
                   <Tooltip />
-                  <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="clicks" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </>
@@ -94,3 +135,18 @@ export default function AnalyticsPanel({ shortCode, onClose }) {
     </div>
   );
 }
+```
+
+## Verify
+
+1. `cd frontend && npm run build` — must succeed with no errors.
+2. Start the dev server (`npm run dev`) and open a link's analytics panel.
+3. **Golden path:** with geo data present, both horizontal bar charts render below
+   the daily-clicks chart.
+4. **Empty state:** for a link with no geo data, the text
+   "Geographic data not yet available for this link." appears in place of the charts.
+5. Check that the existing daily-clicks chart and total-clicks count are unaffected.
+
+## Commit
+
+`feat: add Top Countries and Top Cities bar charts to AnalyticsPanel (Phase 4.1)`
