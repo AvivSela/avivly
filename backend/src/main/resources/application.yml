@@ -22,6 +22,15 @@ logging:
     root: WARN
     com.memcyco: INFO
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+
 geo:
   db:
     path: ${GEO_DB_PATH:}

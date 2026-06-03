@@ -1,0 +1,62 @@
+package com.memcyco.urlshortener.service;
+
+import com.maxmind.geoip2.DatabaseReader;
+import com.maxmind.geoip2.exception.AddressNotFoundException;
+import com.maxmind.geoip2.record.City;
+import com.maxmind.geoip2.record.Country;
+import com.memcyco.urlshortener.dto.GeoResult;
+import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Service;
+
+import java.net.InetAddress;
+
+@Service
+@RequiredArgsConstructor
+public class GeoResolverService {
+
+    private static final Logger log = LoggerFactory.getLogger(GeoResolverService.class);
+
+    @Nullable
+    private final DatabaseReader reader;
+
+    public GeoResult resolve(String ip) {
+        if (reader == null) {
+            return GeoResult.error();
+        }
+        try {
+            InetAddress addr = InetAddress.getByName(ip);
+            if (addr.isLoopbackAddress() || addr.isSiteLocalAddress() || addr.isLinkLocalAddress()) {
+                return GeoResult.private_();
+            }
+            var response = reader.city(addr);
+            Country country = response.getCountry();
+            City city = response.getCity();
+            return GeoResult.resolved(
+                    country.getName(),
+                    city.getName()
+            );
+        } catch (AddressNotFoundException e) {
+            return GeoResult.notFound();
+        } catch (Exception e) {
+            log.warn("Geo lookup failed for {}: {}", mask(ip), e.getMessage());
+            return GeoResult.error();
+        }
+    }
+
+    /** Returns the IP with the last segment replaced by 'x' for safe logging. */
+    public String mask(String ip) {
+        if (ip == null) return "null";
+        if (ip.contains(":")) {
+            // IPv6 — mask last colon-separated group
+            int last = ip.lastIndexOf(':');
+            return ip.substring(0, last + 1) + "x";
+        }
+        // IPv4 — mask last dot-separated octet
+        int last = ip.lastIndexOf('.');
+        if (last < 0) return "x";
+        return ip.substring(0, last + 1) + "x";
+    }
+}
