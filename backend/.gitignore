@@ -1,0 +1,2 @@
+*.mmdb
+!src/test/resources/GeoLite2-City-Test.mmdb
