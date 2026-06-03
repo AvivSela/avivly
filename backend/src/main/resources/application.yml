@@ -21,3 +21,7 @@ logging:
   level:
     root: WARN
     com.memcyco: INFO
+
+geo:
+  db:
+    path: ${GEO_DB_PATH:}

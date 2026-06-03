@@ -4,7 +4,7 @@
 - [x] [Phase 1.1 — GeoStatus Enum](phase-1-1-geo-status-enum.md)
 - [x] [Phase 1.2 — ClickAnalytics Geo Fields](phase-1-2-click-analytics-geo-fields.md)
 - [x] [Phase 1.3 — Flyway Migrations](phase-1-3-flyway-migrations.md)
-- [ ] [Phase 2.1 + 2.2 — GeoResult Record & GeoConfig Bean](phase-2-1-2-geo-core-setup.md)
+- [x] [Phase 2.1 + 2.2 — GeoResult Record & GeoConfig Bean](phase-2-1-2-geo-core-setup.md)
 - [ ] [Phase 2.3 + 2.4 — GeoResolverService & Health Indicator](phase-2-3-4-geo-resolver.md)
 - [ ] [Phase 3.1 + 3.3 + 3.4 — Controller IP, Repo Queries, DTO Extension](phase-3-1-3-4-parallel.md)
 - [ ] [Phase 3.2 — Analytics Geo Population](phase-3-2-analytics-geo-population.md)
