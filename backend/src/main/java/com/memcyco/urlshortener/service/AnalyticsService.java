@@ -7,7 +7,6 @@ import com.memcyco.urlshortener.repository.ShortLinkRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -20,7 +19,6 @@ public class AnalyticsService {
     private final GeoResolverService geoResolverService;
 
     @Async("analyticsTaskExecutor")
-    @Transactional
     public void logClickAsync(String shortCode, String referer, String userAgent, String ip) {
         var geo = geoResolverService.resolve(ip);
         clickRepo.save(ClickAnalytics.builder()
