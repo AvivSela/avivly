@@ -58,6 +58,7 @@ public class AnalyticsService {
             ))
             .toList();
 
-        return new AnalyticsResponse(totalClicks, clicksOverTime, topReferrers, topUserAgents);
+        return new AnalyticsResponse(totalClicks, clicksOverTime, topReferrers, topUserAgents,
+                List.of(), List.of());
     }
 }

@@ -19,4 +19,28 @@ public interface ClickAnalyticsRepository extends JpaRepository<ClickAnalytics, 
 
     @Query("SELECT c.userAgent, COUNT(c) as count FROM ClickAnalytics c WHERE c.shortCode = :shortCode AND c.userAgent IS NOT NULL GROUP BY c.userAgent ORDER BY count DESC")
     List<Object[]> topUserAgents(@Param("shortCode") String shortCode);
+
+    @Query(value = """
+            SELECT country, COUNT(*) AS clicks
+            FROM click_analytics
+            WHERE short_code = :shortCode
+              AND country IS NOT NULL
+            GROUP BY country
+            ORDER BY clicks DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Object[]> topCountries(@Param("shortCode") String shortCode,
+                                 @Param("limit") int limit);
+
+    @Query(value = """
+            SELECT city, country, COUNT(*) AS clicks
+            FROM click_analytics
+            WHERE short_code = :shortCode
+              AND city IS NOT NULL
+            GROUP BY city, country
+            ORDER BY clicks DESC
+            LIMIT :limit
+            """, nativeQuery = true)
+    List<Object[]> topCities(@Param("shortCode") String shortCode,
+                              @Param("limit") int limit);
 }
