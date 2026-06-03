@@ -32,7 +32,7 @@ public class GeoResolverService {
             var response = reader.city(addr);
             String countryName = response.getCountry().getName();
             if (countryName == null) {
-                return GeoResult.notFound();
+                return GeoResult.dataIncomplete();
             }
             return GeoResult.resolved(countryName, response.getCity().getName());
         } catch (AddressNotFoundException e) {
