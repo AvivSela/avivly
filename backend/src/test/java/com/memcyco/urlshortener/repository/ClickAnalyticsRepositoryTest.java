@@ -43,6 +43,18 @@ class ClickAnalyticsRepositoryTest {
     }
 
     @Test
+    void topCountriesTieBreaksAlphabetically() {
+        repo.save(ClickAnalytics.builder().shortCode("x").country("US").geoStatus(GeoStatus.RESOLVED).build());
+        repo.save(ClickAnalytics.builder().shortCode("x").country("AU").geoStatus(GeoStatus.RESOLVED).build());
+
+        List<Object[]> results = repo.topCountries("x", 10);
+
+        assertThat(results).hasSize(2);
+        assertThat(results.get(0)[0]).isEqualTo("AU"); // equal count; AU < US
+        assertThat(results.get(1)[0]).isEqualTo("US");
+    }
+
+    @Test
     void nullCountryCityExcludedFromAggregates() {
         repo.save(ClickAnalytics.builder().shortCode("x").geoStatus(GeoStatus.PRIVATE).build());
         assertThat(repo.topCountries("x", 10)).isEmpty();

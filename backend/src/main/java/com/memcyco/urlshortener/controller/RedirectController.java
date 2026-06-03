@@ -51,6 +51,11 @@ public class RedirectController {
             String[] parts = xff.split(",");
             for (int i = parts.length - 1; i >= 0; i--) {
                 String candidate = parts[i].trim();
+                // Strip bracketed IPv6 notation: [2001:db8::1] or [2001:db8::1]:port
+                if (candidate.startsWith("[")) {
+                    int close = candidate.indexOf(']');
+                    if (close > 1) candidate = candidate.substring(1, close);
+                }
                 try {
                     InetAddress addr = InetAddress.getByName(candidate);
                     if (!IpUtils.isPrivateAddress(addr)) {

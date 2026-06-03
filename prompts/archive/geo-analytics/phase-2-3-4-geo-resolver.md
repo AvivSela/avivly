@@ -109,7 +109,7 @@ public class GeoResolverService {
 
     public GeoResult resolve(String ip) {
         if (reader == null) {
-            return GeoResult.error();
+            return GeoResult.disabled();
         }
         try {
             InetAddress addr = InetAddress.getByName(ip);
@@ -185,8 +185,8 @@ public class GeoResolverHealthIndicator implements HealthIndicator {
     @Override
     public Health health() {
         if (reader == null) {
-            return Health.down()
-                    .withDetail("reason", "MaxMind DB not loaded — geo resolution disabled")
+            return Health.status("DEGRADED")
+                    .withDetail("reason", "MaxMind DB not configured — geo resolution disabled")
                     .build();
         }
         return Health.up().build();
@@ -214,7 +214,7 @@ management:
 - With `GEO_DB_PATH` pointing at the test fixture:
   `GET /actuator/health` → `geoResolver.status = UP`
 - With `GEO_DB_PATH` unset:
-  `GET /actuator/health` → `geoResolver.status = DOWN` with detail reason
+  `GET /actuator/health` → `geoResolver.status = DEGRADED` with detail reason
 
 ```bash
 cd backend && ./mvnw test

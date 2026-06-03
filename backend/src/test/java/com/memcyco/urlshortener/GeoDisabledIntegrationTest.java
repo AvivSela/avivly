@@ -25,8 +25,9 @@ class GeoDisabledIntegrationTest {
     }
 
     @Test
-    void healthShowsGeoResolverDown() {
+    void healthShowsGeoResolverDegraded() {
         ResponseEntity<String> res = rest.getForEntity("/actuator/health", String.class);
+        assertThat(res.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(res.getBody()).contains("\"geoResolver\"");
         assertThat(res.getBody()).contains("\"status\":\"DEGRADED\"");
     }

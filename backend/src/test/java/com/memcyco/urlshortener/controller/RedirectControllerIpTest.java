@@ -55,6 +55,25 @@ class RedirectControllerIpTest {
     }
 
     @Test
+    void bracketedIpv6InXffIsUnwrapped() throws Exception {
+        when(linkService.findByShortCode("abc")).thenReturn(activeLink());
+        // Bracketed notation with a private IPv4 hop to the right so the IPv6 wins
+        mvc.perform(get("/abc")
+                .header("X-Forwarded-For", "[2001:db8::1], 10.0.0.1"))
+           .andExpect(status().isFound());
+        verify(analyticsService).logClickAsync(eq("abc"), any(), any(), eq("2001:db8::1"));
+    }
+
+    @Test
+    void bracketedIpv6WithPortInXffIsUnwrapped() throws Exception {
+        when(linkService.findByShortCode("abc")).thenReturn(activeLink());
+        mvc.perform(get("/abc")
+                .header("X-Forwarded-For", "[2001:db8::2]:8080"))
+           .andExpect(status().isFound());
+        verify(analyticsService).logClickAsync(eq("abc"), any(), any(), eq("2001:db8::2"));
+    }
+
+    @Test
     void fallsBackToRemoteAddr() throws Exception {
         when(linkService.findByShortCode("abc")).thenReturn(activeLink());
         mvc.perform(get("/abc"))  // no proxy headers; MockMvc uses 127.0.0.1

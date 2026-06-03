@@ -31,7 +31,11 @@ management:
         include: health
   endpoint:
     health:
-      show-details: when-authorized
+      show-details: always
+      status:
+        order: DOWN,OUT_OF_SERVICE,UNKNOWN,DEGRADED,UP
+        http-mapping:
+          DEGRADED: 200
 
 geo:
   db:

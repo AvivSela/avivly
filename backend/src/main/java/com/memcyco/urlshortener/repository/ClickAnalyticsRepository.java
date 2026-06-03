@@ -20,7 +20,7 @@ public interface ClickAnalyticsRepository extends JpaRepository<ClickAnalytics, 
             WHERE short_code = :shortCode
               AND referer IS NOT NULL
             GROUP BY referer
-            ORDER BY count DESC
+            ORDER BY count DESC, referer ASC
             LIMIT :limit
             """, nativeQuery = true)
     List<Object[]> topReferrers(@Param("shortCode") String shortCode,
@@ -32,7 +32,7 @@ public interface ClickAnalyticsRepository extends JpaRepository<ClickAnalytics, 
             WHERE short_code = :shortCode
               AND user_agent IS NOT NULL
             GROUP BY user_agent
-            ORDER BY count DESC
+            ORDER BY count DESC, user_agent ASC
             LIMIT :limit
             """, nativeQuery = true)
     List<Object[]> topUserAgents(@Param("shortCode") String shortCode,
@@ -42,9 +42,10 @@ public interface ClickAnalyticsRepository extends JpaRepository<ClickAnalytics, 
             SELECT country, COUNT(*) AS clicks
             FROM click_analytics
             WHERE short_code = :shortCode
+              AND geo_status = 'RESOLVED'
               AND country IS NOT NULL
             GROUP BY country
-            ORDER BY clicks DESC
+            ORDER BY clicks DESC, country ASC
             LIMIT :limit
             """, nativeQuery = true)
     List<Object[]> topCountries(@Param("shortCode") String shortCode,
@@ -54,9 +55,10 @@ public interface ClickAnalyticsRepository extends JpaRepository<ClickAnalytics, 
             SELECT city, country, COUNT(*) AS clicks
             FROM click_analytics
             WHERE short_code = :shortCode
+              AND geo_status = 'RESOLVED'
               AND city IS NOT NULL
             GROUP BY city, country
-            ORDER BY clicks DESC
+            ORDER BY clicks DESC, city ASC, country ASC
             LIMIT :limit
             """, nativeQuery = true)
     List<Object[]> topCities(@Param("shortCode") String shortCode,
