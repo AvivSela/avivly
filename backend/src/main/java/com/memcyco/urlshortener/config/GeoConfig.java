@@ -25,6 +25,10 @@ public class GeoConfig {
             return null;
         }
         File file = new File(path);
+        if (file.isDirectory()) {
+            log.warn("geo.db.path points to a directory, not a file: {} — geo resolution disabled (Docker created a directory at this mount point?)", path);
+            return null;
+        }
         if (!file.exists()) {
             log.warn("MaxMind DB not found at {} — geo resolution disabled", path);
             return null;
