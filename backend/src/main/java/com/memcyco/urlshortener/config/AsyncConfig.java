@@ -1,5 +1,6 @@
 package com.memcyco.urlshortener.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -11,8 +12,8 @@ import java.util.concurrent.Executor;
 @EnableAsync
 public class AsyncConfig implements AsyncConfigurer {
 
-    @Override
-    public Executor getAsyncExecutor() {
+    @Bean("analyticsTaskExecutor")
+    public Executor analyticsTaskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(4);
         executor.setMaxPoolSize(10);
@@ -20,5 +21,10 @@ public class AsyncConfig implements AsyncConfigurer {
         executor.setThreadNamePrefix("analytics-");
         executor.initialize();
         return executor;
+    }
+
+    @Override
+    public Executor getAsyncExecutor() {
+        return analyticsTaskExecutor();
     }
 }

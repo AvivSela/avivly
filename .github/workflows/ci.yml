@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: maven
+
+      - name: Download GeoLite2-City database
+        env:
+          MAXMIND_LICENSE_KEY: ${{ secrets.MAXMIND_LICENSE_KEY }}
+        run: |
+          curl -sSL \
+            "https://download.maxmind.com/app/geoip_download?edition_id=GeoLite2-City&license_key=${MAXMIND_LICENSE_KEY}&suffix=tar.gz" \
+            -o GeoLite2-City.tar.gz
+          tar -xzf GeoLite2-City.tar.gz --wildcards --no-anchored '*.mmdb' --strip-components=1
+          mkdir -p backend/src/main/resources/geo
+          mv GeoLite2-City.mmdb backend/src/main/resources/geo/
+        # Skip gracefully if secret is not set (forks / PRs from external contributors)
+        if: env.MAXMIND_LICENSE_KEY != ''
+
+      - name: Run integration tests
+        env:
+          GEO_DB_PATH: src/main/resources/geo/GeoLite2-City.mmdb
+        run: cd backend && mvn verify

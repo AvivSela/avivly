@@ -4,6 +4,7 @@ import LinkForm from './components/LinkForm';
 import LinksTable from './components/LinksTable';
 import AnalyticsPanel from './components/AnalyticsPanel';
 import LinkExpired from './components/LinkExpired';
+import Footer from './components/Footer';
 import { getLinks, deleteLink } from './api';
 
 export default function App() {
@@ -69,6 +70,7 @@ export default function App() {
           />
         )}
       </main>
+      <Footer />
     </div>
   );
 

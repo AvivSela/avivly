@@ -12,5 +12,5 @@
 - [x] [Phase 4.1 — Frontend Geo Charts](phase-4-1-frontend-geo-charts.md)
 - [x] [Phase 5.1 — Dev Profile](phase-5-1-dev-profile.md)
 - [x] [Phase 5.2 — Flyway Schema Management](phase-5-2-flyway-schema-management.md)
-- [ ] [Phase 5.3 — Integration Tests](phase-5-3-integration-tests.md)
+- [x] [Phase 5.3 — Integration Tests](phase-5-3-integration-tests.md)
 - [ ] [Phase 6 — CI, Docker & Attribution (6.1 + 6.2 + 6.3)](phase-6-ci-docker-attribution.md)

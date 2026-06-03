@@ -24,6 +24,9 @@ services:
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      GEO_DB_PATH: /data/GeoLite2-City.mmdb
+    volumes:
+      - ${MAXMIND_DB_PATH:-./geo/GeoLite2-City.mmdb}:/data/GeoLite2-City.mmdb:ro
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://localhost:8080/api/links > /dev/null || exit 1"]
       interval: 10s
