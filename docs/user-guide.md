@@ -56,13 +56,14 @@ Each row shows:
 
 ![Analytics panel open below the table](screenshots/05-analytics-panel.png)
 
-Click **Stats** on any row to open the analytics panel. It slides in below the links table. The panel shows:
+Click **Stats** on any row to open the analytics panel. It appears below the links table and contains three sections:
 
-- **Link heading** — "Analytics — `<short code>`" with an × to close the panel.
-- **Total clicks** — the cumulative click count.
-- **Geographic breakdown** — if the server is configured with a MaxMind GeoLite2 database, a per-country/region breakdown appears here. Otherwise "Geographic data not yet available for this link." is shown.
+- **Total clicks** — the cumulative click count for the link.
+- **Clicks over time** — a bar chart showing daily click volume across the last 30 days.
+- **Top countries** — a horizontal bar chart ranking clicks by country (requires the server to be configured with a MaxMind GeoLite2 database).
+- **Top cities** — a horizontal bar chart ranking clicks by city within their country.
 
-Clicking **Stats** on a different row switches the panel to that link's data. Click × or the same **Stats** button again to close it.
+Clicking **Stats** on a different row switches the panel to that link's data. Click × to close the panel.
 
 ---
 
