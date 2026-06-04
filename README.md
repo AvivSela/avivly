@@ -2,6 +2,8 @@
 
 A full-stack URL shortener with click analytics. Create short links, set expiry dates and click limits, and track usage with time-series charts. Built with Spring Boot, React, and PostgreSQL.
 
+![Dashboard showing the links table and analytics panel with click charts and geo breakdown](docs/screenshots/hero.png)
+
 ## Features
 
 - **Short link creation** — paste any URL and get a short code instantly; optionally supply your own custom slug
