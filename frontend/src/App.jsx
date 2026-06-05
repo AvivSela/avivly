@@ -4,6 +4,7 @@ import LinkForm from './components/LinkForm';
 import LinksTable from './components/LinksTable';
 import AnalyticsPanel from './components/AnalyticsPanel';
 import LinkExpired from './components/LinkExpired';
+import NotFound from './components/NotFound';
 import Footer from './components/Footer';
 import { getLinks, deleteLink } from './api';
 
@@ -79,6 +80,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={dashboard} />
         <Route path="/link-expired" element={<LinkExpired />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

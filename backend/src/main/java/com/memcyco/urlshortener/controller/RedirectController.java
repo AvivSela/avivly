@@ -4,14 +4,13 @@ import com.memcyco.urlshortener.model.ShortLink;
 import com.memcyco.urlshortener.service.AnalyticsService;
 import com.memcyco.urlshortener.service.LinkService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.memcyco.urlshortener.util.IpUtils;
+import java.io.IOException;
 import java.net.InetAddress;
-import java.net.URI;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,13 +20,18 @@ public class RedirectController {
     private final AnalyticsService analyticsService;
 
     @GetMapping({"/api/r/{shortCode}", "/{shortCode}"})
-    public ResponseEntity<Void> redirect(@PathVariable String shortCode,
-                                          HttpServletRequest request) {
+    public void redirect(@PathVariable String shortCode,
+                         HttpServletRequest request,
+                         HttpServletResponse response) throws IOException {
         ShortLink link = linkService.findByShortCode(shortCode);
-        if (link == null || !link.isValid()) {
-            return ResponseEntity.status(HttpStatus.FOUND)
-                    .location(URI.create("/link-expired"))
-                    .build();
+        if (link == null) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+        if (!link.isValid()) {
+            response.setStatus(HttpServletResponse.SC_FOUND);
+            response.setHeader("Location", "/link-expired");
+            return;
         }
         linkService.recordClick(shortCode);
         analyticsService.logClickAsync(
@@ -36,9 +40,8 @@ public class RedirectController {
             request.getHeader("User-Agent"),
             extractClientIp(request)
         );
-        return ResponseEntity.status(HttpStatus.FOUND)
-            .location(URI.create(link.getOriginalUrl()))
-            .build();
+        response.setStatus(HttpServletResponse.SC_FOUND);
+        response.setHeader("Location", link.getOriginalUrl());
     }
 
     private String extractClientIp(HttpServletRequest request) {

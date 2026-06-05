@@ -104,12 +104,11 @@ class RedirectIntegrationTest {
     }
 
     @Test
-    void unknownCode_redirectsToLinkExpired() {
+    void unknownCode_returns404() {
         ResponseEntity<Void> response = restTemplate.getForEntity(
             url("/nonexistent999"), Void.class);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
-        assertThat(response.getHeaders().getLocation()).hasToString("/link-expired");
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
 
     @Test
