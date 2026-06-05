@@ -24,7 +24,8 @@ For a full description of each feature see [docs/features.md](docs/features.md).
 |---------|--------------|------|-------------|
 | `db` | `postgres:15-alpine` | `5432` | PostgreSQL database |
 | `backend` | `./backend` | `8080` | Spring Boot REST API |
-| `frontend` | `./frontend` | `3000` | React app served by nginx |
+| `frontend` | `./frontend` | — | React app (internal, no exposed port) |
+| `nginx` | `nginx:1.27-alpine` | `80` | Reverse proxy (public entry point) |
 
 Startup order is enforced: `db` must pass its health check before `backend` starts, and `backend` must be up before `frontend`.
 
@@ -33,14 +34,14 @@ Startup order is enforced: `db` must pass its health check before `backend` star
 **Prerequisites:** Docker and Docker Compose installed.
 
 ```bash
-# Build images and start all three services
+# Build images and start all four services
 docker-compose up --build
 
 # Run in the background
 docker-compose up --build -d
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Open [http://localhost](http://localhost) in your browser.
 
 ### Useful commands
 
@@ -67,9 +68,9 @@ docker-compose up --build backend
 |----------|-------|
 | Database name | `urlshortener` |
 | Database user | `user` |
-| Database password | `password` |
+| Database password | `changeme` |
 
-These are set in `docker-compose.yml` and injected into the backend at runtime. Change them there if needed — no other files need updating when running via Docker.
+These are set in `.env` (copied from `.env.example`) and injected into the backend at runtime. Change them there if needed — no other files need updating when running via Docker.
 
 ## Local Development (without Docker)
 
@@ -187,9 +188,9 @@ All AI-generated code was reviewed, tested, and integrated by me. Final design d
 
 - **Analytics are best-effort (at-most-once).** `recordClick` (increments `totalClicks`) and `logClickAsync` (writes a `ClickAnalytics` row) are independent operations. A JVM crash between them can leave `totalClicks` one ahead of `COUNT(ClickAnalytics)`. Occasional one-row drift is considered acceptable.
 
-- **Real client IPs are not captured behind a reverse proxy.** `request.getRemoteAddr()` returns the proxy's IP (e.g. nginx in Docker), not the originating client IP. `X-Forwarded-For` is not read. IP analytics will be inaccurate in proxied deployments.
+- **Client IP resolution relies on proxy headers.** `RedirectController.extractClientIp` reads `X-Real-IP` first, then walks `X-Forwarded-For` right-to-left skipping RFC-1918 addresses, and falls back to `request.getRemoteAddr()`. This works correctly when nginx passes `X-Real-IP` or `X-Forwarded-For`, but IP analytics will be inaccurate if the upstream proxy does not set these headers.
 
-- **Tags are free-text labels, not structured data.** The `tags` field is a single plain-text string stored as-is. There is no "find all links by tag" query; tags are for display purposes only.
+- **Tags are free-text labels, not structured data.** The `tags` field is a single plain-text string stored as-is. Filtering by tag is done entirely client-side in the frontend; there is no backend query or index for tags.
 
 - **All timestamps are server-local with no timezone info.** `LocalDateTime` is used throughout. The assumption is that the server and any consumers share the same timezone, or that timezone differences are acceptable.
 
@@ -230,7 +231,7 @@ Short links are cached in Caffeine with a 10-minute TTL and a maximum of 10 000 
 
 ### Validity check in the entity
 
-`ShortLink.isValid()` centralizes the three validity conditions — active flag, expiry date, max-click limit — in the entity. The redirect controller calls this single method; invalid links redirect to `/link-expired` and unknown codes redirect to `/not-found` (both are frontend routes), rather than returning HTTP error codes directly.
+`ShortLink.isValid()` centralizes the three validity conditions — active flag, expiry date, max-click limit — in the entity. The redirect controller calls this single method; invalid links redirect to `/link-expired` (a frontend route) rather than returning an HTTP error code directly. Unknown codes return a plain `404`.
 
 ### Schema management
 
