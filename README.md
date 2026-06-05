@@ -157,7 +157,7 @@ cd frontend && npx vitest run
 | PUT | `/api/links/{id}` | Update a short link | 200 OK |
 | DELETE | `/api/links/{id}` | Delete a short link | 204 No Content |
 | GET | `/api/links/{shortCode}/analytics` | Get click analytics | 200 OK |
-| GET | `/{shortCode}` | Redirect to original URL | 302 Found (to original URL, `/link-expired`, or `/not-found`) |
+| GET | `/{shortCode}` | Redirect to original URL | 302 Found (to original URL or `/link-expired`); 404 if the code is unknown |
 
 ## AI Tools Disclosure
 

@@ -55,7 +55,7 @@ npx vitest run src/components/LinksTable.test.jsx  # run a single test file
 - **IP extraction:** `RedirectController.extractClientIp` reads `X-Real-IP` first, then walks `X-Forwarded-For` rightmost-to-leftmost skipping private addresses. Falls back to `request.getRemoteAddr()`.
 
 ### Frontend
-Single-page app with one real route (`/`) and two error routes (`/link-expired`, `/not-found`). State lives in `App.jsx`: links list, current edit target, active analytics short code, and tag filter. `api.js` is an axios instance; all calls go through it. `AnalyticsPanel` is rendered inline below the table when a short code is selected — it is not a modal.
+Single-page app with one real route (`/`), one error route (`/link-expired`), and a `path="*"` catch-all that renders the Not Found page for any other unmatched path. State lives in `App.jsx`: links list, current edit target, active analytics short code, and tag filter. `api.js` is an axios instance; all calls go through it. `AnalyticsPanel` is rendered inline below the table when a short code is selected — it is not a modal.
 
 ### Geo feature
 The `geo/` directory at the project root contains documentation and scripts for setting up the MaxMind database. The test suite includes a real (sample) `GeoLite2-City-Test.mmdb` at `backend/src/test/resources/` used by `GeoAnalyticsIntegrationTest` and `GeoResolverServiceTest`. The `application-dev.yml` profile points to this test database for local development with geo enabled.

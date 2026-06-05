@@ -110,9 +110,9 @@ In all three cases the visitor is shown a **Link expired** page rather than a ge
 
 The app has two dedicated error pages:
 
-| Page | URL | When it appears |
-|------|-----|-----------------|
-| **Not Found** | `/not-found` | The short code has never existed in the system — the URL was mistyped or the link was deleted. |
-| **Link Expired** | `/link-expired` | The short code exists but is no longer active — it was manually deactivated, its expiry date has passed, or it has reached its click cap. |
+| Page | How it's shown | When it appears |
+|------|----------------|-----------------|
+| **Not Found** | Server-rendered 404 HTML page (Spring `CustomErrorController`) | The short code has never existed in the system — the URL was mistyped or the link was deleted. |
+| **Link Expired** | `302` redirect to `/link-expired` (React frontend route) | The short code exists but is no longer active — it was manually deactivated, its expiry date has passed, or it has reached its click cap. |
 
-Both pages are served by the React frontend. They can be reached directly by navigating to their URLs, and they are also shown automatically when a visitor follows a broken or expired short link.
+The **Link Expired** page is part of the React app and can be styled to match your brand. The **Not Found** response is a lightweight server-side HTML page returned directly by the backend — it does not go through the React frontend.
