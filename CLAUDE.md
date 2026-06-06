@@ -8,12 +8,36 @@ Analytics-driven URL shortener built with Spring Boot 3 (Java 17), React + Vite 
 
 ## Commands
 
-### Running the full stack
+### Running the full stack (Docker Compose)
 ```bash
-docker-compose up --build          # build and start all services
-docker-compose up --build backend  # rebuild a single service
-docker-compose down -v             # stop and wipe the DB volume
+cp .env.example .env                       # first time: fill in POSTGRES_PASSWORD
+make dev                                   # build and start all services
+make down                                  # stop and wipe the DB volume
+docker-compose up --build backend          # rebuild a single service (no Makefile shortcut)
 ```
+
+### Kubernetes deployment
+```bash
+cp .env.example .env           # fill in POSTGRES_PASSWORD (secrets sourced from .env)
+make deploy-k8s                # apply namespace, upsert postgres-secret, apply all k8s/ manifests
+kubectl -n memcyco get all     # watch rollout status
+```
+
+`make deploy-k8s` runs three steps in order:
+1. `kubectl apply -f k8s/namespace.yaml` — creates the `memcyco` namespace
+2. `kubectl create secret generic postgres-secret --from-env-file=.env ...` — upserts DB credentials as a K8s Secret
+3. `kubectl apply -f k8s/` — applies all manifests (configmap, postgres StatefulSet, backend/frontend Deployments, nginx LoadBalancer)
+
+**Images:** backend and frontend Deployments reference `memcyco/backend:latest` and `memcyco/frontend:latest` (`imagePullPolicy: IfNotPresent`). Build before deploying:
+```bash
+docker build -t memcyco/backend:latest ./backend
+docker build -t memcyco/frontend:latest ./frontend
+# minikube users: minikube image load memcyco/backend:latest && minikube image load memcyco/frontend:latest
+```
+
+**Startup ordering (K8s):** init containers replace `depends_on`. The backend init container waits for postgres:5432 via netcat; nginx init containers wait for backend:8080 and frontend:80 before starting.
+
+**Entry point:** the nginx LoadBalancer Service exposes port 80. On minikube: `minikube service nginx -n memcyco`.
 
 ### Backend (Spring Boot + Maven)
 ```bash
@@ -56,6 +80,15 @@ npx vitest run src/components/LinksTable.test.jsx  # run a single test file
 
 ### Frontend
 Single-page app with one real route (`/`), one error route (`/link-expired`), and a `path="*"` catch-all that renders the Not Found page for any other unmatched path. State lives in `App.jsx`: links list, current edit target, active analytics short code, and tag filter. `api.js` is an axios instance; all calls go through it. `AnalyticsPanel` is rendered inline below the table when a short code is selected — it is not a modal.
+
+### Kubernetes manifests (`k8s/`)
+- `namespace.yaml` — `memcyco` namespace
+- `configmap.yaml` — nginx.conf baked as a ConfigMap (rate-limit 30 req/min on redirect path; proxy routing mirrors Docker Compose nginx)
+- `postgres.yaml` — StatefulSet (1 replica, 5Gi PVC) + ClusterIP Service; credentials from `postgres-secret`
+- `backend.yaml` — Deployment + ClusterIP Service; init container waits on postgres:5432; geo disabled by default (no `GEO_DB_PATH`)
+- `frontend.yaml` — Deployment + ClusterIP Service; stateless
+- `nginx.yaml` — Deployment + LoadBalancer Service (port 80); init containers wait for backend and frontend; mounts nginx-config ConfigMap
+- `secret.yaml.example` — documentation placeholder only; actual Secret is created by `make deploy-k8s` from `.env`
 
 ### Geo feature
 The `geo/` directory at the project root contains documentation and scripts for setting up the MaxMind database. The test suite includes a real (sample) `GeoLite2-City-Test.mmdb` at `backend/src/test/resources/` used by `GeoAnalyticsIntegrationTest` and `GeoResolverServiceTest`. The `application-dev.yml` profile points to this test database for local development with geo enabled.
