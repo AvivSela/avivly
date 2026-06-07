@@ -3,7 +3,7 @@
 - [x] `prompts/auth-01-pom-dependencies.md`
 - [x] `prompts/auth-02-yml-config.md`
 - [x] `prompts/auth-03-v4-migration.md`
-- [ ] `prompts/auth-04-user-entity.md`
+- [x] `prompts/auth-04-user-entity.md`
 - [ ] `prompts/auth-05-jwt-security.md`
 - [ ] `prompts/auth-06-auth-dtos-service.md`
 - [ ] `prompts/auth-07-auth-controller-security-config.md`
@@ -11,6 +11,14 @@
 - [ ] `prompts/auth-09-link-response-shortlink.md`
 - [ ] `prompts/auth-10-link-service.md`
 - [ ] `prompts/auth-11-link-controller.md`
+- [ ] `prompts/auth-12-run-tests.md`
+- [ ] `prompts/auth-13-auth-controller-test.md`
+- [ ] `prompts/auth-14-link-auth-test.md`
+- [ ] `prompts/auth-15-link-controller-test-update.md`
+- [ ] `prompts/auth-16-frontend-api.md`
+- [ ] `prompts/auth-17-frontend-auth-forms.md`
+- [ ] `prompts/auth-18-frontend-app-linkstable.md`
+- [ ] `prompts/auth-19-frontend-tests.md`
 - [ ] `prompts/auth-12-run-tests.md`
 - [ ] `prompts/auth-13-auth-controller-test.md`
 - [ ] `prompts/auth-14-link-auth-test.md`
