@@ -5,20 +5,23 @@ ifneq (,$(wildcard .env))
   export
 endif
 
+SPRING_DATASOURCE_USERNAME ?= $(POSTGRES_USER)
+SPRING_DATASOURCE_PASSWORD ?= $(POSTGRES_PASSWORD)
+
 dev:
-	docker-compose up --build
+	docker compose up --build
 
 dev-local:
-	docker-compose up db -d
+	docker compose up -d --force-recreate db
 	@echo "Waiting for db..." && \
-	  until docker-compose exec -T db pg_isready -U $${POSTGRES_USER:-user} -q; do sleep 1; done
+	  until bash -c '</dev/tcp/localhost/5432' 2>/dev/null; do sleep 1; done
 	@trap 'kill 0' INT TERM; \
 	  (cd backend && mvn spring-boot:run) & \
 	  (cd frontend && npm run dev) & \
 	  wait
 
 down:
-	docker-compose down -v
+	docker compose down -v
 
 deploy-k8s:
 	kubectl apply -f k8s/namespace.yaml
