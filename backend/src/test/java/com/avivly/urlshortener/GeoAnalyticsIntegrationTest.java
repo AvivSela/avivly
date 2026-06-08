@@ -8,6 +8,7 @@ import com.avivly.urlshortener.model.User;
 import com.avivly.urlshortener.repository.ClickAnalyticsRepository;
 import com.avivly.urlshortener.repository.UserRepository;
 import com.avivly.urlshortener.service.LinkService;
+import com.avivly.urlshortener.support.AuthTestSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,7 +31,7 @@ import static org.awaitility.Awaitility.await;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @TestPropertySource(properties = "geo.db.path=src/test/resources/GeoLite2-City-Test.mmdb")
-class GeoAnalyticsIntegrationTest {
+class GeoAnalyticsIntegrationTest extends AuthTestSupport {
 
     @Autowired TestRestTemplate rest;
     @Autowired LinkService linkService;
@@ -37,16 +39,13 @@ class GeoAnalyticsIntegrationTest {
     @Autowired UserRepository userRepo;
 
     private ShortLink testLink;
+    private String token;
 
     @BeforeEach
     void setUp() {
-        User user = userRepo.findByEmail("geo-test@test.com").orElseGet(() -> {
-            User u = User.builder()
-                .email("geo-test@test.com")
-                .passwordHash("noop")
-                .build();
-            return userRepo.save(u);
-        });
+        String email = "geo-test-" + UUID.randomUUID() + "@test.com";
+        token = registerAndGetToken(email);
+        User user = userRepo.findByEmail(email).orElseThrow();
         testLink = linkService.create(new CreateLinkRequest(
             "https://example.com/geo-test", null, null, null, null, null, null), user.getId());
     }
@@ -84,16 +83,18 @@ class GeoAnalyticsIntegrationTest {
 
     @Test
     void analyticsEndpointReturnsGeoFields() {
-        ResponseEntity<String> res = rest.getForEntity(
-            "/api/links/" + testLink.getShortCode() + "/analytics", String.class);
+        ResponseEntity<String> res = rest.exchange(
+            "/api/links/" + testLink.getShortCode() + "/analytics",
+            HttpMethod.GET, new HttpEntity<>(bearerHeaders(token)), String.class);
         assertThat(res.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(res.getBody()).contains("topCountries", "topCities");
     }
 
     @Test
     void analyticsEndpointReturnsEmptyGeoArraysForNoData() {
-        ResponseEntity<String> res = rest.getForEntity(
-            "/api/links/nonexistent-code/analytics", String.class);
+        ResponseEntity<String> res = rest.exchange(
+            "/api/links/" + testLink.getShortCode() + "/analytics",
+            HttpMethod.GET, new HttpEntity<>(bearerHeaders(token)), String.class);
         assertThat(res.getStatusCode().is2xxSuccessful()).isTrue();
         assertThat(res.getBody()).contains("\"topCountries\":[]", "\"topCities\":[]");
     }

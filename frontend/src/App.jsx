@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import ProtectedRoute from './components/ProtectedRoute';
 import LinkForm from './components/LinkForm';
 import LinksTable from './components/LinksTable';
 import AnalyticsPanel from './components/AnalyticsPanel';
@@ -89,7 +90,9 @@ export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={dashboard} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/" element={dashboard} />
+        </Route>
         <Route path="/login"    element={<LoginForm />} />
         <Route path="/register" element={<RegisterForm />} />
         <Route path="/link-expired" element={<LinkExpired />} />

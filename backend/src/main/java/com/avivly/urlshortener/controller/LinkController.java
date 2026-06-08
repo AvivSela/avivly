@@ -40,7 +40,7 @@ public class LinkController {
 
     @GetMapping
     public List<LinkResponse> getAll() {
-        return linkService.findAll().stream().map(LinkResponse::from).toList();
+        return linkService.findAllByOwner(currentUserId()).stream().map(LinkResponse::from).toList();
     }
 
     @PutMapping("/{id}")
@@ -56,6 +56,12 @@ public class LinkController {
 
     @GetMapping("/{shortCode}/analytics")
     public AnalyticsResponse getAnalytics(@PathVariable String shortCode) {
+        Long callerId = currentUserId();
+        var link = linkService.findByShortCode(shortCode);
+        if (link == null || !link.getOwner().getId().equals(callerId)) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.FORBIDDEN);
+        }
         return analyticsService.getAnalytics(shortCode);
     }
 }

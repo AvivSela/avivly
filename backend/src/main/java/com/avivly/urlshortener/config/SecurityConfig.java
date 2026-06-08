@@ -40,8 +40,6 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .authorizeHttpRequests(a -> a
                 .requestMatchers(POST,   "/api/auth/**").permitAll()
-                .requestMatchers(GET,    "/api/links").permitAll()
-                .requestMatchers(GET,    "/api/links/*/analytics").permitAll()
                 .requestMatchers(GET,    "/api/strategies").permitAll()
                 .requestMatchers(GET,    "/api/r/**").permitAll()
                 .requestMatchers(GET,    "/{shortCode}").permitAll()
