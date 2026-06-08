@@ -38,22 +38,30 @@ export default function LoginForm() {
       <div className="bg-white rounded-xl shadow p-8 w-full max-w-sm">
         <h2 className="text-xl font-semibold mb-6 text-center">Log in</h2>
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
-          />
+          <label className="flex flex-col gap-1 text-sm font-medium text-gray-700">
+            Email
+            <input
+              id="email"
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 font-normal"
+            />
+          </label>
+          <label className="flex flex-col gap-1 text-sm font-medium text-gray-700">
+            Password
+            <input
+              id="password"
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 font-normal"
+            />
+          </label>
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <button
             type="submit"
