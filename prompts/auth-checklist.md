@@ -5,7 +5,7 @@
 - [x] `prompts/auth-03-v4-migration.md`
 - [x] `prompts/auth-04-user-entity.md`
 - [x] `prompts/auth-05-jwt-security.md`
-- [ ] `prompts/auth-06-auth-dtos-service.md`
+- [x] `prompts/auth-06-auth-dtos-service.md`
 - [ ] `prompts/auth-07-auth-controller-security-config.md`
 - [ ] `prompts/auth-08-application-bootstrap.md`
 - [ ] `prompts/auth-09-link-response-shortlink.md`
