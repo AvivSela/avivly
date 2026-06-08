@@ -25,7 +25,11 @@ public class LinkController {
 
     private Long currentUserId() {
         var auth = SecurityContextHolder.getContext().getAuthentication();
-        return (Long) auth.getPrincipal();
+        if (!(auth.getPrincipal() instanceof Long userId)) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.UNAUTHORIZED);
+        }
+        return userId;
     }
 
     @PostMapping

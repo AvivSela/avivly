@@ -2,19 +2,16 @@ package com.avivly.urlshortener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.avivly.urlshortener.dto.AnalyticsResponse;
-import com.avivly.urlshortener.dto.AuthRequest;
-import com.avivly.urlshortener.dto.AuthResponse;
 import com.avivly.urlshortener.dto.CreateLinkRequest;
 import com.avivly.urlshortener.dto.LinkResponse;
 import com.avivly.urlshortener.dto.UpdateLinkRequest;
 import com.avivly.urlshortener.repository.ClickAnalyticsRepository;
+import com.avivly.urlshortener.support.AuthTestSupport;
 import org.awaitility.Awaitility;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
@@ -28,13 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-class LinkControllerIntegrationTest {
-
-    @LocalServerPort
-    private int port;
-
-    @Autowired
-    private TestRestTemplate restTemplate;
+class LinkControllerIntegrationTest extends AuthTestSupport {
 
     @Autowired
     private ClickAnalyticsRepository clickRepo;
@@ -44,25 +35,9 @@ class LinkControllerIntegrationTest {
 
     private String token;
 
-    private String url(String path) {
-        return "http://localhost:" + port + path;
-    }
-
     @BeforeEach
     void setUp() {
         token = registerAndGetToken("test-" + UUID.randomUUID() + "@example.com");
-    }
-
-    private String registerAndGetToken(String email) {
-        AuthRequest req = new AuthRequest(email, "password123");
-        return restTemplate.postForEntity(url("/api/auth/register"), req, AuthResponse.class)
-            .getBody().token();
-    }
-
-    private HttpHeaders bearerHeaders(String token) {
-        HttpHeaders h = new HttpHeaders();
-        h.setBearerAuth(token);
-        return h;
     }
 
     @Test

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Optional;
 
 @Component
 public class JwtTokenProvider {
@@ -40,6 +41,14 @@ public class JwtTokenProvider {
 
     public Long getUserIdFromToken(String token) {
         return Long.valueOf(parseClaims(token).getSubject());
+    }
+
+    public Optional<Long> extractUserId(String token) {
+        try {
+            return Optional.of(Long.valueOf(parseClaims(token).getSubject()));
+        } catch (JwtException | IllegalArgumentException e) {
+            return Optional.empty();
+        }
     }
 
     private Claims parseClaims(String token) {

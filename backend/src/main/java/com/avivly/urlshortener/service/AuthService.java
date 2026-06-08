@@ -5,6 +5,7 @@ import com.avivly.urlshortener.model.User;
 import com.avivly.urlshortener.repository.UserRepository;
 import com.avivly.urlshortener.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,11 @@ public class AuthService {
             .email(req.email())
             .passwordHash(passwordEncoder.encode(req.password()))
             .build();
-        userRepo.save(user);
+        try {
+            userRepo.save(user);
+        } catch (DataIntegrityViolationException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email already registered");
+        }
         return new AuthResponse(jwtTokenProvider.generateToken(user), user.getEmail());
     }
 

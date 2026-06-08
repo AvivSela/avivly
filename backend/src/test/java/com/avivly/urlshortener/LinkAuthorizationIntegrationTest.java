@@ -1,15 +1,11 @@
 package com.avivly.urlshortener;
 
-import com.avivly.urlshortener.dto.AuthRequest;
-import com.avivly.urlshortener.dto.AuthResponse;
 import com.avivly.urlshortener.dto.CreateLinkRequest;
 import com.avivly.urlshortener.dto.LinkResponse;
 import com.avivly.urlshortener.dto.UpdateLinkRequest;
+import com.avivly.urlshortener.support.AuthTestSupport;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -19,29 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
-class LinkAuthorizationIntegrationTest {
-
-    @LocalServerPort
-    private int port;
-
-    @Autowired
-    private TestRestTemplate restTemplate;
-
-    private String url(String path) {
-        return "http://localhost:" + port + path;
-    }
-
-    private String registerAndGetToken(String email) {
-        AuthRequest req = new AuthRequest(email, "password123");
-        return restTemplate.postForEntity(url("/api/auth/register"), req, AuthResponse.class)
-            .getBody().token();
-    }
-
-    private HttpHeaders bearerHeaders(String token) {
-        HttpHeaders h = new HttpHeaders();
-        h.setBearerAuth(token);
-        return h;
-    }
+class LinkAuthorizationIntegrationTest extends AuthTestSupport {
 
     @Test
     void createLink_withoutToken_returns401() {

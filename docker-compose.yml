@@ -24,6 +24,8 @@ services:
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-user}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+      CORS_ALLOWED_ORIGIN: ${CORS_ALLOWED_ORIGIN:-http://localhost:5173}
       GEO_DB_PATH: /data/GeoLite2-City.mmdb
     volumes:
       - ${MAXMIND_DB_PATH:-./geo/GeoLite2-City.mmdb}:/data/GeoLite2-City.mmdb:ro

@@ -32,6 +32,7 @@ public class LinkService {
         return repo.findByShortCode(shortCode).orElse(null);
     }
 
+    @Transactional(readOnly = true)
     public List<ShortLink> findAll() {
         return repo.findAll();
     }
