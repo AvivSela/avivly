@@ -1,0 +1,21 @@
+# Auth Implementation Checklist
+
+- [x] `prompts/auth-01-pom-dependencies.md`
+- [x] `prompts/auth-02-yml-config.md`
+- [x] `prompts/auth-03-v4-migration.md`
+- [x] `prompts/auth-04-user-entity.md`
+- [x] `prompts/auth-05-jwt-security.md`
+- [x] `prompts/auth-06-auth-dtos-service.md`
+- [x] `prompts/auth-07-auth-controller-security-config.md`
+- [x] `prompts/auth-08-application-bootstrap.md`
+- [x] `prompts/auth-09-link-response-shortlink.md`
+- [x] `prompts/auth-10-link-service.md`
+- [x] `prompts/auth-11-link-controller.md`
+- [x] `prompts/auth-12-run-tests.md`
+- [x] `prompts/auth-13-auth-controller-test.md`
+- [x] `prompts/auth-14-link-auth-test.md`
+- [x] `prompts/auth-15-link-controller-test-update.md`
+- [x] `prompts/auth-16-frontend-api.md`
+- [x] `prompts/auth-17-frontend-auth-forms.md`
+- [x] `prompts/auth-18-frontend-app-linkstable.md`
+- [x] `prompts/auth-19-frontend-tests.md`

@@ -2,14 +2,15 @@ package com.avivly.urlshortener.controller;
 
 import com.avivly.urlshortener.dto.AnalyticsResponse;
 import com.avivly.urlshortener.dto.CreateLinkRequest;
+import com.avivly.urlshortener.dto.LinkResponse;
 import com.avivly.urlshortener.dto.UpdateLinkRequest;
-import com.avivly.urlshortener.model.ShortLink;
 import com.avivly.urlshortener.service.AnalyticsService;
 import com.avivly.urlshortener.service.LinkService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,24 +23,34 @@ public class LinkController {
     private final LinkService linkService;
     private final AnalyticsService analyticsService;
 
+    private Long currentUserId() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (!(auth.getPrincipal() instanceof Long userId)) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.UNAUTHORIZED);
+        }
+        return userId;
+    }
+
     @PostMapping
-    public ResponseEntity<ShortLink> create(@Valid @RequestBody CreateLinkRequest req) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(linkService.create(req));
+    public ResponseEntity<LinkResponse> create(@Valid @RequestBody CreateLinkRequest req) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(LinkResponse.from(linkService.create(req, currentUserId())));
     }
 
     @GetMapping
-    public List<ShortLink> getAll() {
-        return linkService.findAll();
+    public List<LinkResponse> getAll() {
+        return linkService.findAll().stream().map(LinkResponse::from).toList();
     }
 
     @PutMapping("/{id}")
-    public ShortLink update(@PathVariable Long id, @Valid @RequestBody UpdateLinkRequest req) {
-        return linkService.update(id, req);
+    public LinkResponse update(@PathVariable Long id, @Valid @RequestBody UpdateLinkRequest req) {
+        return LinkResponse.from(linkService.update(id, req, currentUserId()));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        linkService.delete(id);
+        linkService.delete(id, currentUserId());
         return ResponseEntity.noContent().build();
     }
 
