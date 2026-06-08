@@ -63,7 +63,7 @@ class LinkControllerIntegrationTest extends AuthTestSupport {
         restTemplate.postForEntity(url("/api/links"), new HttpEntity<>(req, bearerHeaders(token)), LinkResponse.class);
 
         ResponseEntity<List<LinkResponse>> response = restTemplate.exchange(
-            url("/api/links"), HttpMethod.GET, null,
+            url("/api/links"), HttpMethod.GET, new HttpEntity<>(bearerHeaders(token)),
             new ParameterizedTypeReference<>() {});
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -138,8 +138,9 @@ class LinkControllerIntegrationTest extends AuthTestSupport {
             !clickRepo.findByShortCodeOrderByClickedAtDesc(code).isEmpty()
         );
 
-        String json = restTemplate.getForObject(
-            url("/api/links/" + code + "/analytics"), String.class);
+        String json = restTemplate.exchange(
+            url("/api/links/" + code + "/analytics"), HttpMethod.GET,
+            new HttpEntity<>(bearerHeaders(token)), String.class).getBody();
         AnalyticsResponse analytics = objectMapper.readValue(json, AnalyticsResponse.class);
 
         assertThat(analytics.totalClicks()).isEqualTo(1);

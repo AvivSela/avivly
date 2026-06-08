@@ -33,8 +33,8 @@ public class LinkService {
     }
 
     @Transactional(readOnly = true)
-    public List<ShortLink> findAll() {
-        return repo.findAll();
+    public List<ShortLink> findAllByOwner(Long ownerId) {
+        return repo.findByOwnerId(ownerId);
     }
 
     // Strips BOM, RTL/LTR marks, zero-width spaces, and regular whitespace from a URL string.

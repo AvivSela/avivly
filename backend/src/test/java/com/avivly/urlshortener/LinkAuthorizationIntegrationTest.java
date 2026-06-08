@@ -111,9 +111,9 @@ class LinkAuthorizationIntegrationTest extends AuthTestSupport {
     }
 
     @Test
-    void getLinks_withoutToken_returns200() {
+    void getLinks_withoutToken_returns401() {
         ResponseEntity<String> res = restTemplate.getForEntity(url("/api/links"), String.class);
-        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
     @Test

@@ -12,6 +12,8 @@ public interface ShortLinkRepository extends JpaRepository<ShortLink, Long> {
 
     Optional<ShortLink> findByShortCode(String shortCode);
 
+    java.util.List<ShortLink> findByOwnerId(Long ownerId);
+
     @Modifying
     @Query("UPDATE ShortLink s SET s.totalClicks = s.totalClicks + 1 WHERE s.shortCode = :shortCode")
     void incrementClicks(@Param("shortCode") String shortCode);
