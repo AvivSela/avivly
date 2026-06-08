@@ -3,7 +3,9 @@ package com.avivly.urlshortener.service;
 import com.avivly.urlshortener.dto.CreateLinkRequest;
 import com.avivly.urlshortener.dto.UpdateLinkRequest;
 import com.avivly.urlshortener.model.ShortLink;
+import com.avivly.urlshortener.model.User;
 import com.avivly.urlshortener.repository.ShortLinkRepository;
+import com.avivly.urlshortener.repository.UserRepository;
 import com.avivly.urlshortener.util.strategy.StrategyRegistry;
 import com.avivly.urlshortener.util.strategy.StrategyType;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +25,7 @@ public class LinkService {
 
     private final ShortLinkRepository repo;
     private final StrategyRegistry strategyRegistry;
+    private final UserRepository userRepo;
 
     @Cacheable(value = "shortLinks", key = "#shortCode")
     public ShortLink findByShortCode(String shortCode) {
@@ -39,7 +42,7 @@ public class LinkService {
     }
 
     @Transactional
-    public ShortLink create(CreateLinkRequest req) {
+    public ShortLink create(CreateLinkRequest req, Long callerId) {
         String originalUrl = sanitizeUrl(req.originalUrl());
         String strategyName = req.strategy();
         StrategyType strategyType;
@@ -58,6 +61,10 @@ public class LinkService {
             .expiresAt(req.expiresAt())
             .tags(req.tags())
             .build();
+
+        User owner = userRepo.findById(callerId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+        partialEntity.setOwner(owner);
 
         if (req.customAlias() != null && !req.customAlias().isBlank()) {
             String code = req.customAlias();
@@ -91,9 +98,13 @@ public class LinkService {
 
     @Transactional
     @CacheEvict(value = "shortLinks", key = "#result.shortCode")
-    public ShortLink update(Long id, UpdateLinkRequest req) {
+    public ShortLink update(Long id, UpdateLinkRequest req, Long callerId) {
         ShortLink link = repo.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Link not found: " + id));
+
+        if (!link.getOwner().getId().equals(callerId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the owner");
+        }
 
         if (req.originalUrl() != null) link.setOriginalUrl(sanitizeUrl(req.originalUrl()));
         if (req.isActive() != null) link.setActive(req.isActive());
@@ -105,9 +116,14 @@ public class LinkService {
     }
 
     @Transactional
-    public void delete(Long id) {
+    public void delete(Long id, Long callerId) {
         ShortLink link = repo.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Link not found: " + id));
+
+        if (!link.getOwner().getId().equals(callerId)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the owner");
+        }
+
         evictCache(link.getShortCode());
         repo.delete(link);
     }

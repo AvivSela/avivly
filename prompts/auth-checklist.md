@@ -9,8 +9,8 @@
 - [x] `prompts/auth-07-auth-controller-security-config.md`
 - [x] `prompts/auth-08-application-bootstrap.md`
 - [x] `prompts/auth-09-link-response-shortlink.md`
-- [ ] `prompts/auth-10-link-service.md`
-- [ ] `prompts/auth-11-link-controller.md`
+- [x] `prompts/auth-10-link-service.md`
+- [x] `prompts/auth-11-link-controller.md`
 - [ ] `prompts/auth-12-run-tests.md`
 - [ ] `prompts/auth-13-auth-controller-test.md`
 - [ ] `prompts/auth-14-link-auth-test.md`
