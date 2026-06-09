@@ -63,9 +63,11 @@ public class LinkService {
             .tags(req.tags())
             .build();
 
-        User owner = userRepo.findById(callerId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-        partialEntity.setOwner(owner);
+        if (callerId != null) {
+            User owner = userRepo.findById(callerId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+            partialEntity.setOwner(owner);
+        }
 
         if (req.customAlias() != null && !req.customAlias().isBlank()) {
             String code = req.customAlias();
@@ -98,11 +100,19 @@ public class LinkService {
     }
 
     @Transactional
+    public ShortLink createGuest(CreateLinkRequest req) {
+        return create(req, null);
+    }
+
+    @Transactional
     @CacheEvict(value = "shortLinks", key = "#result.shortCode")
     public ShortLink update(Long id, UpdateLinkRequest req, Long callerId) {
         ShortLink link = repo.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Link not found: " + id));
 
+        if (link.getOwner() == null) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Guest links cannot be updated");
+        }
         if (!link.getOwner().getId().equals(callerId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the owner");
         }
@@ -121,7 +131,7 @@ public class LinkService {
         ShortLink link = repo.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Link not found: " + id));
 
-        if (!link.getOwner().getId().equals(callerId)) {
+        if (link.getOwner() != null && !link.getOwner().getId().equals(callerId)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not the owner");
         }
 

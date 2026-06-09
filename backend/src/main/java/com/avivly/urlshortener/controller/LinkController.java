@@ -32,6 +32,12 @@ public class LinkController {
         return userId;
     }
 
+    @PostMapping("/guest")
+    public ResponseEntity<LinkResponse> createGuest(@Valid @RequestBody CreateLinkRequest req) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(LinkResponse.from(linkService.createGuest(req)));
+    }
+
     @PostMapping
     public ResponseEntity<LinkResponse> create(@Valid @RequestBody CreateLinkRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -58,7 +64,11 @@ public class LinkController {
     public AnalyticsResponse getAnalytics(@PathVariable String shortCode) {
         Long callerId = currentUserId();
         var link = linkService.findByShortCode(shortCode);
-        if (link == null || !link.getOwner().getId().equals(callerId)) {
+        if (link == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.FORBIDDEN);
+        }
+        if (link.getOwner() != null && !link.getOwner().getId().equals(callerId)) {
             throw new org.springframework.web.server.ResponseStatusException(
                 org.springframework.http.HttpStatus.FORBIDDEN);
         }

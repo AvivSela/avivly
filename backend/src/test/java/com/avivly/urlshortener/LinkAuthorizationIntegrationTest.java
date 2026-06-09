@@ -18,11 +18,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 class LinkAuthorizationIntegrationTest extends AuthTestSupport {
 
     @Test
-    void createLink_withoutToken_returns401() {
-        CreateLinkRequest req = new CreateLinkRequest(
-            "https://example.com/unauth", null, null, null, null, null, null);
-        ResponseEntity<String> res = restTemplate.postForEntity(url("/api/links"), req, String.class);
-        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    void createLink_withoutToken_returns201WithNullOwner() {
+        CreateLinkRequest req = new CreateLinkRequest("https://example.com/anon", null, null, null, null, null, null);
+        ResponseEntity<LinkResponse> res = restTemplate.postForEntity(url("/api/links/guest"), req, LinkResponse.class);
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(res.getBody().ownerId()).isNull();
+        assertThat(res.getBody().shortCode()).isNotBlank();
     }
 
     @Test
@@ -107,6 +108,14 @@ class LinkAuthorizationIntegrationTest extends AuthTestSupport {
 
         ResponseEntity<String> res = restTemplate.exchange(
             url("/api/links/" + created.id()), HttpMethod.DELETE, HttpEntity.EMPTY, String.class);
+        assertThat(res.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    void createLink_authenticatedEndpoint_withoutToken_returns401() {
+        CreateLinkRequest req = new CreateLinkRequest(
+            "https://example.com/should-be-unauth", null, null, null, null, null, null);
+        ResponseEntity<String> res = restTemplate.postForEntity(url("/api/links"), req, String.class);
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
