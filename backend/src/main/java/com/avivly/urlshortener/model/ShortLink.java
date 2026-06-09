@@ -39,7 +39,7 @@ public class ShortLink {
     private String tags;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = true)
+    @JoinColumn(name = "user_id")
     private User owner;
 
     @Column(updatable = false)

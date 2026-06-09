@@ -1,7 +1,6 @@
 package com.avivly.urlshortener.service;
 
 import com.avivly.urlshortener.dto.CreateLinkRequest;
-import com.avivly.urlshortener.dto.GuestLinkRequest;
 import com.avivly.urlshortener.dto.UpdateLinkRequest;
 import com.avivly.urlshortener.model.ShortLink;
 import com.avivly.urlshortener.model.User;
@@ -101,28 +100,8 @@ public class LinkService {
     }
 
     @Transactional
-    public ShortLink createGuest(GuestLinkRequest req) {
-        String originalUrl = sanitizeUrl(req.originalUrl());
-        ShortLink entity = ShortLink.builder()
-            .originalUrl(originalUrl)
-            .strategy(StrategyType.RANDOM_BASE62.name())
-            .build();
-
-        if (req.customAlias() != null && !req.customAlias().isBlank()) {
-            String code = req.customAlias();
-            if (repo.findByShortCode(code).isPresent()) {
-                throw new ResponseStatusException(HttpStatus.CONFLICT, "Short code already taken: " + code);
-            }
-            entity.setShortCode(code);
-            return repo.save(entity);
-        }
-
-        String code = strategyRegistry.validateAndGenerate(StrategyType.RANDOM_BASE62, originalUrl, null, null);
-        if (repo.findByShortCode(code).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Short code already taken: " + code);
-        }
-        entity.setShortCode(code);
-        return repo.save(entity);
+    public ShortLink createGuest(CreateLinkRequest req) {
+        return create(req, null);
     }
 
     @Transactional

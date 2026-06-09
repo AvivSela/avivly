@@ -1,7 +1,6 @@
 package com.avivly.urlshortener;
 
 import com.avivly.urlshortener.dto.CreateLinkRequest;
-import com.avivly.urlshortener.dto.GuestLinkRequest;
 import com.avivly.urlshortener.dto.LinkResponse;
 import com.avivly.urlshortener.dto.UpdateLinkRequest;
 import com.avivly.urlshortener.support.AuthTestSupport;
@@ -20,7 +19,7 @@ class LinkAuthorizationIntegrationTest extends AuthTestSupport {
 
     @Test
     void createLink_withoutToken_returns201WithNullOwner() {
-        GuestLinkRequest req = new GuestLinkRequest("https://example.com/anon", null);
+        CreateLinkRequest req = new CreateLinkRequest("https://example.com/anon", null, null, null, null, null, null);
         ResponseEntity<LinkResponse> res = restTemplate.postForEntity(url("/api/links/guest"), req, LinkResponse.class);
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(res.getBody().ownerId()).isNull();

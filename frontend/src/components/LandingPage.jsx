@@ -28,8 +28,7 @@ export default function LandingPage() {
     setResult(null);
     setCreating(true);
     try {
-      const sanitized = url.replace(/^[\s​-‏﻿]+|[\s​-‏﻿]+$/g, '');
-      const res = await createGuestLink({ originalUrl: sanitized });
+      const res = await createGuestLink({ originalUrl: url });
       const shortUrl = `${window.location.origin}/${res.data.shortCode}`;
       setResult(shortUrl);
       setUrl('');

@@ -2,7 +2,6 @@ package com.avivly.urlshortener.controller;
 
 import com.avivly.urlshortener.dto.AnalyticsResponse;
 import com.avivly.urlshortener.dto.CreateLinkRequest;
-import com.avivly.urlshortener.dto.GuestLinkRequest;
 import com.avivly.urlshortener.dto.LinkResponse;
 import com.avivly.urlshortener.dto.UpdateLinkRequest;
 import com.avivly.urlshortener.service.AnalyticsService;
@@ -33,14 +32,8 @@ public class LinkController {
         return userId;
     }
 
-    private Long currentUserIdOrNull() {
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.getPrincipal() instanceof Long userId) return userId;
-        return null;
-    }
-
     @PostMapping("/guest")
-    public ResponseEntity<LinkResponse> createGuest(@Valid @RequestBody GuestLinkRequest req) {
+    public ResponseEntity<LinkResponse> createGuest(@Valid @RequestBody CreateLinkRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(LinkResponse.from(linkService.createGuest(req)));
     }
@@ -48,7 +41,7 @@ public class LinkController {
     @PostMapping
     public ResponseEntity<LinkResponse> create(@Valid @RequestBody CreateLinkRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(LinkResponse.from(linkService.create(req, currentUserIdOrNull())));
+            .body(LinkResponse.from(linkService.create(req, currentUserId())));
     }
 
     @GetMapping
