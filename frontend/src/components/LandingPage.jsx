@@ -1,13 +1,27 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createGuestLink, login } from '../api';
+import { createGuestLink, login, verifyToken } from '../api';
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    if (localStorage.getItem('token')) navigate('/dashboard');
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setChecking(false);
+      return;
+    }
+    verifyToken()
+      .then(() => navigate('/dashboard'))
+      .catch(() => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('email');
+        setChecking(false);
+      });
   }, [navigate]);
+
+  if (checking) return null;
 
   // Anon shortener state
   const [url, setUrl] = useState('');
@@ -53,7 +67,7 @@ export default function LandingPage() {
       const res = await login({ email, password });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('email', email);
-      navigate('/dashboard');
+      window.location.href = '/dashboard';
     } catch (err) {
       if (err.response?.status === 401) {
         setLoginError('Invalid email or password');

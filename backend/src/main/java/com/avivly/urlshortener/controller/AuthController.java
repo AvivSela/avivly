@@ -23,4 +23,9 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest req) {
         return ResponseEntity.ok(authService.login(req));
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<Void> me() {
+        return ResponseEntity.ok().build();
+    }
 }
