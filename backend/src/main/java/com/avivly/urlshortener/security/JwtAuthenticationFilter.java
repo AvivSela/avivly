@@ -1,5 +1,6 @@
 package com.avivly.urlshortener.security;
 
+import com.avivly.urlshortener.repository.UserRepository;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -26,8 +28,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
             jwtTokenProvider.extractUserId(token).ifPresent(userId -> {
-                Authentication auth = new UsernamePasswordAuthenticationToken(userId, null, List.of());
-                SecurityContextHolder.getContext().setAuthentication(auth);
+                if (userRepository.existsById(userId)) {
+                    Authentication auth = new UsernamePasswordAuthenticationToken(userId, null, List.of());
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
             });
         }
         chain.doFilter(request, response);
